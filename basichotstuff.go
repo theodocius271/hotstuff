@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"strconv"
 
+	"github.com/hyperledger/fabric/protos/common"
 	"github.com/niclabs/tcrsa"
 	"github.com/theodocius271/hotstuff/config"
 	"github.com/theodocius271/hotstuff/crypto"
@@ -289,7 +290,7 @@ func (bhs *BasicHotStuff) handleMsg(msg *pb.Msg) {
 		request := msg.GetRequest()
 		logger.Debugf("[HOTSTUFF] Got request msg, content:%s", request.String())
 		// put the cmd into the cmdset
-		bhs.CmdSet.Add(request.Cmd)
+		bhs.CmdSet.Add(request.Envelope)
 		// send request to the leader, if the replica is not the leader
 		if bhs.ID != bhs.GetLeader() {
 			bhs.Unicast(bhs.GetNetworkInfo()[bhs.GetLeader()], msg)
@@ -337,7 +338,7 @@ func (bhs *BasicHotStuff) processProposal() {
 	}
 }
 
-func (bhs *BasicHotStuff) batchEvent(cmds []string) {
+func (bhs *BasicHotStuff) batchEvent(cmds []*common.Envelope) {
 	if len(cmds) == 0 {
 		bhs.BatchTimeChan.SoftStartTimer()
 		return

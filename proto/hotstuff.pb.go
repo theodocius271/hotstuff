@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.6
 // 	protoc        v3.12.4
-// source: hotstuff.proto
+// source: orderer/consensus/hotstuff/proto/hotstuff.proto
 
 package proto
 
@@ -43,7 +43,7 @@ type Msg struct {
 
 func (x *Msg) Reset() {
 	*x = Msg{}
-	mi := &file_hotstuff_proto_msgTypes[0]
+	mi := &file_orderer_consensus_hotstuff_proto_hotstuff_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -55,7 +55,7 @@ func (x *Msg) String() string {
 func (*Msg) ProtoMessage() {}
 
 func (x *Msg) ProtoReflect() protoreflect.Message {
-	mi := &file_hotstuff_proto_msgTypes[0]
+	mi := &file_orderer_consensus_hotstuff_proto_hotstuff_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -68,7 +68,7 @@ func (x *Msg) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Msg.ProtoReflect.Descriptor instead.
 func (*Msg) Descriptor() ([]byte, []int) {
-	return file_hotstuff_proto_rawDescGZIP(), []int{0}
+	return file_orderer_consensus_hotstuff_proto_hotstuff_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *Msg) GetPayload() isMsg_Payload {
@@ -240,7 +240,7 @@ type Empty struct {
 
 func (x *Empty) Reset() {
 	*x = Empty{}
-	mi := &file_hotstuff_proto_msgTypes[1]
+	mi := &file_orderer_consensus_hotstuff_proto_hotstuff_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -252,7 +252,7 @@ func (x *Empty) String() string {
 func (*Empty) ProtoMessage() {}
 
 func (x *Empty) ProtoReflect() protoreflect.Message {
-	mi := &file_hotstuff_proto_msgTypes[1]
+	mi := &file_orderer_consensus_hotstuff_proto_hotstuff_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -265,7 +265,7 @@ func (x *Empty) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Empty.ProtoReflect.Descriptor instead.
 func (*Empty) Descriptor() ([]byte, []int) {
-	return file_hotstuff_proto_rawDescGZIP(), []int{1}
+	return file_orderer_consensus_hotstuff_proto_hotstuff_proto_rawDescGZIP(), []int{1}
 }
 
 type Prepare struct {
@@ -279,7 +279,7 @@ type Prepare struct {
 
 func (x *Prepare) Reset() {
 	*x = Prepare{}
-	mi := &file_hotstuff_proto_msgTypes[2]
+	mi := &file_orderer_consensus_hotstuff_proto_hotstuff_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -291,7 +291,7 @@ func (x *Prepare) String() string {
 func (*Prepare) ProtoMessage() {}
 
 func (x *Prepare) ProtoReflect() protoreflect.Message {
-	mi := &file_hotstuff_proto_msgTypes[2]
+	mi := &file_orderer_consensus_hotstuff_proto_hotstuff_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -304,7 +304,7 @@ func (x *Prepare) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Prepare.ProtoReflect.Descriptor instead.
 func (*Prepare) Descriptor() ([]byte, []int) {
-	return file_hotstuff_proto_rawDescGZIP(), []int{2}
+	return file_orderer_consensus_hotstuff_proto_hotstuff_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *Prepare) GetCurProposal() *Block {
@@ -340,7 +340,7 @@ type PrepareVote struct {
 
 func (x *PrepareVote) Reset() {
 	*x = PrepareVote{}
-	mi := &file_hotstuff_proto_msgTypes[3]
+	mi := &file_orderer_consensus_hotstuff_proto_hotstuff_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -352,7 +352,7 @@ func (x *PrepareVote) String() string {
 func (*PrepareVote) ProtoMessage() {}
 
 func (x *PrepareVote) ProtoReflect() protoreflect.Message {
-	mi := &file_hotstuff_proto_msgTypes[3]
+	mi := &file_orderer_consensus_hotstuff_proto_hotstuff_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -365,7 +365,7 @@ func (x *PrepareVote) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PrepareVote.ProtoReflect.Descriptor instead.
 func (*PrepareVote) Descriptor() ([]byte, []int) {
-	return file_hotstuff_proto_rawDescGZIP(), []int{3}
+	return file_orderer_consensus_hotstuff_proto_hotstuff_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *PrepareVote) GetBlockHash() []byte {
@@ -406,7 +406,7 @@ type PreCommit struct {
 
 func (x *PreCommit) Reset() {
 	*x = PreCommit{}
-	mi := &file_hotstuff_proto_msgTypes[4]
+	mi := &file_orderer_consensus_hotstuff_proto_hotstuff_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -418,7 +418,7 @@ func (x *PreCommit) String() string {
 func (*PreCommit) ProtoMessage() {}
 
 func (x *PreCommit) ProtoReflect() protoreflect.Message {
-	mi := &file_hotstuff_proto_msgTypes[4]
+	mi := &file_orderer_consensus_hotstuff_proto_hotstuff_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -431,7 +431,7 @@ func (x *PreCommit) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PreCommit.ProtoReflect.Descriptor instead.
 func (*PreCommit) Descriptor() ([]byte, []int) {
-	return file_hotstuff_proto_rawDescGZIP(), []int{4}
+	return file_orderer_consensus_hotstuff_proto_hotstuff_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *PreCommit) GetPrepareQC() *QuorumCert {
@@ -460,7 +460,7 @@ type PreCommitVote struct {
 
 func (x *PreCommitVote) Reset() {
 	*x = PreCommitVote{}
-	mi := &file_hotstuff_proto_msgTypes[5]
+	mi := &file_orderer_consensus_hotstuff_proto_hotstuff_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -472,7 +472,7 @@ func (x *PreCommitVote) String() string {
 func (*PreCommitVote) ProtoMessage() {}
 
 func (x *PreCommitVote) ProtoReflect() protoreflect.Message {
-	mi := &file_hotstuff_proto_msgTypes[5]
+	mi := &file_orderer_consensus_hotstuff_proto_hotstuff_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -485,7 +485,7 @@ func (x *PreCommitVote) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PreCommitVote.ProtoReflect.Descriptor instead.
 func (*PreCommitVote) Descriptor() ([]byte, []int) {
-	return file_hotstuff_proto_rawDescGZIP(), []int{5}
+	return file_orderer_consensus_hotstuff_proto_hotstuff_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *PreCommitVote) GetBlockHash() []byte {
@@ -526,7 +526,7 @@ type Commit struct {
 
 func (x *Commit) Reset() {
 	*x = Commit{}
-	mi := &file_hotstuff_proto_msgTypes[6]
+	mi := &file_orderer_consensus_hotstuff_proto_hotstuff_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -538,7 +538,7 @@ func (x *Commit) String() string {
 func (*Commit) ProtoMessage() {}
 
 func (x *Commit) ProtoReflect() protoreflect.Message {
-	mi := &file_hotstuff_proto_msgTypes[6]
+	mi := &file_orderer_consensus_hotstuff_proto_hotstuff_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -551,7 +551,7 @@ func (x *Commit) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Commit.ProtoReflect.Descriptor instead.
 func (*Commit) Descriptor() ([]byte, []int) {
-	return file_hotstuff_proto_rawDescGZIP(), []int{6}
+	return file_orderer_consensus_hotstuff_proto_hotstuff_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *Commit) GetPreCommitQC() *QuorumCert {
@@ -580,7 +580,7 @@ type CommitVote struct {
 
 func (x *CommitVote) Reset() {
 	*x = CommitVote{}
-	mi := &file_hotstuff_proto_msgTypes[7]
+	mi := &file_orderer_consensus_hotstuff_proto_hotstuff_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -592,7 +592,7 @@ func (x *CommitVote) String() string {
 func (*CommitVote) ProtoMessage() {}
 
 func (x *CommitVote) ProtoReflect() protoreflect.Message {
-	mi := &file_hotstuff_proto_msgTypes[7]
+	mi := &file_orderer_consensus_hotstuff_proto_hotstuff_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -605,7 +605,7 @@ func (x *CommitVote) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CommitVote.ProtoReflect.Descriptor instead.
 func (*CommitVote) Descriptor() ([]byte, []int) {
-	return file_hotstuff_proto_rawDescGZIP(), []int{7}
+	return file_orderer_consensus_hotstuff_proto_hotstuff_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *CommitVote) GetBlockHash() []byte {
@@ -646,7 +646,7 @@ type Decide struct {
 
 func (x *Decide) Reset() {
 	*x = Decide{}
-	mi := &file_hotstuff_proto_msgTypes[8]
+	mi := &file_orderer_consensus_hotstuff_proto_hotstuff_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -658,7 +658,7 @@ func (x *Decide) String() string {
 func (*Decide) ProtoMessage() {}
 
 func (x *Decide) ProtoReflect() protoreflect.Message {
-	mi := &file_hotstuff_proto_msgTypes[8]
+	mi := &file_orderer_consensus_hotstuff_proto_hotstuff_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -671,7 +671,7 @@ func (x *Decide) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Decide.ProtoReflect.Descriptor instead.
 func (*Decide) Descriptor() ([]byte, []int) {
-	return file_hotstuff_proto_rawDescGZIP(), []int{8}
+	return file_orderer_consensus_hotstuff_proto_hotstuff_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *Decide) GetCommitQC() *QuorumCert {
@@ -698,7 +698,7 @@ type NewView struct {
 
 func (x *NewView) Reset() {
 	*x = NewView{}
-	mi := &file_hotstuff_proto_msgTypes[9]
+	mi := &file_orderer_consensus_hotstuff_proto_hotstuff_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -710,7 +710,7 @@ func (x *NewView) String() string {
 func (*NewView) ProtoMessage() {}
 
 func (x *NewView) ProtoReflect() protoreflect.Message {
-	mi := &file_hotstuff_proto_msgTypes[9]
+	mi := &file_orderer_consensus_hotstuff_proto_hotstuff_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -723,7 +723,7 @@ func (x *NewView) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NewView.ProtoReflect.Descriptor instead.
 func (*NewView) Descriptor() ([]byte, []int) {
-	return file_hotstuff_proto_rawDescGZIP(), []int{9}
+	return file_orderer_consensus_hotstuff_proto_hotstuff_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *NewView) GetPrepareQC() *QuorumCert {
@@ -754,7 +754,7 @@ type Request struct {
 
 func (x *Request) Reset() {
 	*x = Request{}
-	mi := &file_hotstuff_proto_msgTypes[10]
+	mi := &file_orderer_consensus_hotstuff_proto_hotstuff_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -766,7 +766,7 @@ func (x *Request) String() string {
 func (*Request) ProtoMessage() {}
 
 func (x *Request) ProtoReflect() protoreflect.Message {
-	mi := &file_hotstuff_proto_msgTypes[10]
+	mi := &file_orderer_consensus_hotstuff_proto_hotstuff_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -779,7 +779,7 @@ func (x *Request) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Request.ProtoReflect.Descriptor instead.
 func (*Request) Descriptor() ([]byte, []int) {
-	return file_hotstuff_proto_rawDescGZIP(), []int{10}
+	return file_orderer_consensus_hotstuff_proto_hotstuff_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *Request) GetEnvelope() *common.Envelope {
@@ -834,7 +834,7 @@ type Reply struct {
 
 func (x *Reply) Reset() {
 	*x = Reply{}
-	mi := &file_hotstuff_proto_msgTypes[11]
+	mi := &file_orderer_consensus_hotstuff_proto_hotstuff_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -846,7 +846,7 @@ func (x *Reply) String() string {
 func (*Reply) ProtoMessage() {}
 
 func (x *Reply) ProtoReflect() protoreflect.Message {
-	mi := &file_hotstuff_proto_msgTypes[11]
+	mi := &file_orderer_consensus_hotstuff_proto_hotstuff_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -859,7 +859,7 @@ func (x *Reply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Reply.ProtoReflect.Descriptor instead.
 func (*Reply) Descriptor() ([]byte, []int) {
-	return file_hotstuff_proto_rawDescGZIP(), []int{11}
+	return file_orderer_consensus_hotstuff_proto_hotstuff_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *Reply) GetResult() string {
@@ -876,11 +876,11 @@ func (x *Reply) GetCommand() string {
 	return ""
 }
 
-var File_hotstuff_proto protoreflect.FileDescriptor
+var File_orderer_consensus_hotstuff_proto_hotstuff_proto protoreflect.FileDescriptor
 
-const file_hotstuff_proto_rawDesc = "" +
+const file_orderer_consensus_hotstuff_proto_hotstuff_proto_rawDesc = "" +
 	"\n" +
-	"\x0ehotstuff.proto\x12\x05proto\x1a\ffabric.proto\x1a\x13common/common.proto\"\xe9\x03\n" +
+	"/orderer/consensus/hotstuff/proto/hotstuff.proto\x12\x05proto\x1a*orderer/consensus/hotstuff/proto/cmm.proto\x1a\x1aprotos/common/common.proto\"\xe9\x03\n" +
 	"\x03Msg\x12*\n" +
 	"\aprepare\x18\x01 \x01(\v2\x0e.proto.PrepareH\x00R\aprepare\x126\n" +
 	"\vprepareVote\x18\x02 \x01(\v2\x12.proto.PrepareVoteH\x00R\vprepareVote\x120\n" +
@@ -954,22 +954,22 @@ const file_hotstuff_proto_rawDesc = "" +
 	"\vSendRequest\x12\n" +
 	".proto.Msg\x1a\f.proto.Empty\"\x00\x12'\n" +
 	"\tSendReply\x12\n" +
-	".proto.Msg\x1a\f.proto.Empty\"\x00B)Z'github.com/theodocius271/hotstuff/protob\x06proto3"
+	".proto.Msg\x1a\f.proto.Empty\"\x00B@Z>github.com/hyperledger/fabric/orderer/consensus/hotstuff/protob\x06proto3"
 
 var (
-	file_hotstuff_proto_rawDescOnce sync.Once
-	file_hotstuff_proto_rawDescData []byte
+	file_orderer_consensus_hotstuff_proto_hotstuff_proto_rawDescOnce sync.Once
+	file_orderer_consensus_hotstuff_proto_hotstuff_proto_rawDescData []byte
 )
 
-func file_hotstuff_proto_rawDescGZIP() []byte {
-	file_hotstuff_proto_rawDescOnce.Do(func() {
-		file_hotstuff_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_hotstuff_proto_rawDesc), len(file_hotstuff_proto_rawDesc)))
+func file_orderer_consensus_hotstuff_proto_hotstuff_proto_rawDescGZIP() []byte {
+	file_orderer_consensus_hotstuff_proto_hotstuff_proto_rawDescOnce.Do(func() {
+		file_orderer_consensus_hotstuff_proto_hotstuff_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_orderer_consensus_hotstuff_proto_hotstuff_proto_rawDesc), len(file_orderer_consensus_hotstuff_proto_hotstuff_proto_rawDesc)))
 	})
-	return file_hotstuff_proto_rawDescData
+	return file_orderer_consensus_hotstuff_proto_hotstuff_proto_rawDescData
 }
 
-var file_hotstuff_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
-var file_hotstuff_proto_goTypes = []any{
+var file_orderer_consensus_hotstuff_proto_hotstuff_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
+var file_orderer_consensus_hotstuff_proto_hotstuff_proto_goTypes = []any{
 	(*Msg)(nil),             // 0: proto.Msg
 	(*Empty)(nil),           // 1: proto.Empty
 	(*Prepare)(nil),         // 2: proto.Prepare
@@ -986,7 +986,7 @@ var file_hotstuff_proto_goTypes = []any{
 	(*QuorumCert)(nil),      // 13: proto.QuorumCert
 	(*common.Envelope)(nil), // 14: common.Envelope
 }
-var file_hotstuff_proto_depIdxs = []int32{
+var file_orderer_consensus_hotstuff_proto_hotstuff_proto_depIdxs = []int32{
 	2,  // 0: proto.Msg.prepare:type_name -> proto.Prepare
 	3,  // 1: proto.Msg.prepareVote:type_name -> proto.PrepareVote
 	4,  // 2: proto.Msg.preCommit:type_name -> proto.PreCommit
@@ -1020,13 +1020,13 @@ var file_hotstuff_proto_depIdxs = []int32{
 	0,  // [0:20] is the sub-list for field type_name
 }
 
-func init() { file_hotstuff_proto_init() }
-func file_hotstuff_proto_init() {
-	if File_hotstuff_proto != nil {
+func init() { file_orderer_consensus_hotstuff_proto_hotstuff_proto_init() }
+func file_orderer_consensus_hotstuff_proto_hotstuff_proto_init() {
+	if File_orderer_consensus_hotstuff_proto_hotstuff_proto != nil {
 		return
 	}
-	file_fabric_proto_init()
-	file_hotstuff_proto_msgTypes[0].OneofWrappers = []any{
+	file_orderer_consensus_hotstuff_proto_cmm_proto_init()
+	file_orderer_consensus_hotstuff_proto_hotstuff_proto_msgTypes[0].OneofWrappers = []any{
 		(*Msg_Prepare)(nil),
 		(*Msg_PrepareVote)(nil),
 		(*Msg_PreCommit)(nil),
@@ -1042,17 +1042,17 @@ func file_hotstuff_proto_init() {
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_hotstuff_proto_rawDesc), len(file_hotstuff_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_orderer_consensus_hotstuff_proto_hotstuff_proto_rawDesc), len(file_orderer_consensus_hotstuff_proto_hotstuff_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   12,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_hotstuff_proto_goTypes,
-		DependencyIndexes: file_hotstuff_proto_depIdxs,
-		MessageInfos:      file_hotstuff_proto_msgTypes,
+		GoTypes:           file_orderer_consensus_hotstuff_proto_hotstuff_proto_goTypes,
+		DependencyIndexes: file_orderer_consensus_hotstuff_proto_hotstuff_proto_depIdxs,
+		MessageInfos:      file_orderer_consensus_hotstuff_proto_hotstuff_proto_msgTypes,
 	}.Build()
-	File_hotstuff_proto = out.File
-	file_hotstuff_proto_goTypes = nil
-	file_hotstuff_proto_depIdxs = nil
+	File_orderer_consensus_hotstuff_proto_hotstuff_proto = out.File
+	file_orderer_consensus_hotstuff_proto_hotstuff_proto_goTypes = nil
+	file_orderer_consensus_hotstuff_proto_hotstuff_proto_depIdxs = nil
 }

@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.5.1
 // - protoc             v3.12.4
-// source: orderer/consensus/hotstuff/proto/hotstuff.proto
+// source: hotstuff.proto
 
 package proto
 
@@ -193,5 +193,5 @@ var HotStuffService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "orderer/consensus/hotstuff/proto/hotstuff.proto",
+	Metadata: "hotstuff.proto",
 }

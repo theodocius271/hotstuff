@@ -1,13 +1,15 @@
 syntax = "proto3";
 package proto;
 
-option go_package = "github.com/theodocius271/hotstuff/proto";
+import "protos/common/common.proto";
+
+option go_package = "github.com/hyperledger/fabric/orderer/consensus/hotstuff/proto";
 
 message Block {
   bytes ParentHash = 1;
   bytes Hash = 2;
   uint64 height = 3;
-  repeated string commands = 4;
+  repeated common.Envelope commands = 4;
   QuorumCert Justify = 5;
   bool committed = 6;
 }

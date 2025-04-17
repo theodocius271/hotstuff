@@ -8,6 +8,7 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/hyperledger/fabric/protos/common"
 	"github.com/niclabs/tcrsa"
 	"github.com/theodocius271/hotstuff/config"
 	pb "github.com/theodocius271/hotstuff/proto"
@@ -137,7 +138,7 @@ func (h *HotStuffImpl) VoteMsg(msgType pb.MsgType, node *pb.Block, qc *pb.Quorum
 }
 
 // TODO: MODIFIED INTO FABRIC'S BLOCK
-func (h *HotStuffImpl) CreateLeaf(parentHash []byte, cmds []string, justify *pb.QuorumCert) *pb.Block {
+func (h *HotStuffImpl) CreateLeaf(parentHash []byte, cmds []*common.Envelope, justify *pb.QuorumCert) *pb.Block {
 	b := &pb.Block{
 		ParentHash: parentHash,
 		Hash:       nil,
@@ -256,7 +257,7 @@ func (h *HotStuffImpl) Unicast(address string, msg *pb.Msg) error {
 	return nil
 }
 
-func (h *HotStuffImpl) ProcessProposal(cmds []string) {
+func (h *HotStuffImpl) ProcessProposal(cmds []*common.Envelope) {
 	for _, cmd := range cmds {
 		result := h.ProcessMethod(cmd)
 		msg := &pb.Msg{Payload: &pb.Msg_Reply{Reply: &pb.Reply{Result: result, Command: cmd}}}
