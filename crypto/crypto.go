@@ -1,4 +1,4 @@
-package hotstuff
+package crypto
 
 import (
 	"crypto"

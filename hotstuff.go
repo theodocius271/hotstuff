@@ -8,10 +8,9 @@ import (
 	"os"
 	"strconv"
 
-	go_hotstuff "github.com/hyperledger/fabric/orderer/consensus/hotstuff"
-	"github.com/hyperledger/fabric/orderer/consensus/hotstuff/config"
-	pb "github.com/hyperledger/fabric/orderer/consensus/hotstuff/proto"
 	"github.com/niclabs/tcrsa"
+	"github.com/theodocius271/hotstuff/config"
+	pb "github.com/theodocius271/hotstuff/proto"
 	"google.golang.org/grpc"
 )
 
@@ -31,13 +30,13 @@ type HotStuff interface {
 
 type HotStuffImpl struct {
 	ID            uint32
-	BlockStorage  go_hotstuff.BlockStorage
+	BlockStorage  BlockStorage
 	View          *View
 	Config        config.HotStuffConfig
-	TimeChan      *go_hotstuff.Timer
-	BatchTimeChan *go_hotstuff.Timer
+	TimeChan      *Timer
+	BatchTimeChan *Timer
 	CurExec       *CurProposal
-	CmdSet        go_hotstuff.CmdSet
+	CmdSet        CmdSet
 	HighQC        *pb.QuorumCert
 	PrepareQC     *pb.QuorumCert // highQC
 	PreCommitQC   *pb.QuorumCert // lockQC
@@ -147,7 +146,7 @@ func (h *HotStuffImpl) CreateLeaf(parentHash []byte, cmds []string, justify *pb.
 		Justify:    justify,
 	}
 
-	b.Hash = go_hotstuff.Hash(b)
+	b.Hash = Hash(b)
 	return b
 }
 
@@ -279,7 +278,7 @@ func GenerateGenesisBlock() *pb.Block {
 		Commands:   nil,
 		Justify:    nil,
 	}
-	hash := go_hotstuff.Hash(genesisBlock)
+	hash := Hash(genesisBlock)
 	genesisBlock.Hash = hash
 	genesisBlock.Committed = true
 	return genesisBlock

@@ -3,13 +3,14 @@ package hotstuff
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/golang/protobuf/proto"
-	"github.com/niclabs/tcrsa"
-	go_hotstuff "github.com/hyperledger/fabric/orderer/hotstuff"
-	"github.com/hyperledger/fabric/orderer/hotstuff/config"
-	"github.com/hyperledger/fabric/orderer/hotstuff/logging"
-	pb "github.com/hyperledger/fabric/orderer/hotstuff/proto"
 	"strconv"
+
+	"github.com/niclabs/tcrsa"
+	"github.com/theodocius271/hotstuff/config"
+	"github.com/theodocius271/hotstuff/crypto"
+	"github.com/theodocius271/hotstuff/logging"
+	pb "github.com/theodocius271/hotstuff/proto"
+	"google.golang.org/protobuf/proto"
 )
 
 var logger = logging.GetLogger()
@@ -29,7 +30,7 @@ func NewBasicHotStuff(id int, handleMethod func(string) string) *BasicHotStuff {
 	bhs.ID = uint32(id)
 	bhs.View = NewView(1, 1)
 	logger.Debugf("[HOTSTUFF] Init block storage, replica id: %d", id)
-	bhs.BlockStorage = go_hotstuff.NewBlockStorageImpl(strconv.Itoa(id))
+	bhs.BlockStorage = NewBlockStorageImpl(strconv.Itoa(id))
 	logger.Debugf("[HOTSTUFF] Generate genesis block")
 	genesisBlock := GenerateGenesisBlock()
 	err := bhs.BlockStorage.Put(genesisBlock)
@@ -55,17 +56,17 @@ func NewBasicHotStuff(id int, handleMethod func(string) string) *BasicHotStuff {
 		Signature: nil,
 	}
 	logger.Debugf("[HOTSTUFF] Init command set, replica id: %d", id)
-	bhs.CmdSet = go_hotstuff.NewCmdSet()
+	bhs.CmdSet = NewCmdSet()
 
 	// read config
 	bhs.Config = config.HotStuffConfig{}
 	bhs.Config.ReadConfig()
 
 	// init timer and stop it
-	bhs.TimeChan = go_hotstuff.NewTimer(bhs.Config.Timeout)
+	bhs.TimeChan = NewTimer(bhs.Config.Timeout)
 	bhs.TimeChan.Init()
 
-	bhs.BatchTimeChan = go_hotstuff.NewTimer(bhs.Config.BatchTimeout)
+	bhs.BatchTimeChan = NewTimer(bhs.Config.BatchTimeout)
 	bhs.BatchTimeChan.Init()
 
 	bhs.CurExec = &CurProposal{
@@ -76,7 +77,7 @@ func NewBasicHotStuff(id int, handleMethod func(string) string) *BasicHotStuff {
 		CommitVote:    make([]*tcrsa.SigShare, 0),
 		HighQC:        make([]*pb.QuorumCert, 0),
 	}
-	privateKey, err := go_hotstuff.ReadThresholdPrivateKeyFromFile(bhs.GetSelfInfo().PrivateKey)
+	privateKey, err := crypto.ReadThresholdPrivateKeyFromFile(bhs.GetSelfInfo().PrivateKey)
 	if err != nil {
 		logger.Fatal(err)
 	}
@@ -99,7 +100,7 @@ func (bhs *BasicHotStuff) receiveMsg() {
 		case <-bhs.TimeChan.Timeout():
 			logger.Warn("Time out, goto new view")
 			// set the duration of the timeout to 2 times
-			bhs.TimeChan = go_hotstuff.NewTimer(bhs.Config.Timeout * 2)
+			bhs.TimeChan = NewTimer(bhs.Config.Timeout * 2)
 			bhs.TimeChan.Init()
 			bhs.CmdSet.UnMark(bhs.CurExec.Node.Commands...)
 			bhs.BlockStorage.Put(bhs.CreateLeaf(bhs.CurExec.Node.ParentHash, nil, nil))
@@ -160,9 +161,9 @@ func (bhs *BasicHotStuff) handleMsg(msg *pb.Msg) {
 		}
 		// create prepare vote msg
 		marshal, _ := proto.Marshal(msg)
-		bhs.CurExec.DocumentHash, _ = go_hotstuff.CreateDocumentHash(marshal, bhs.Config.PublicKey)
+		bhs.CurExec.DocumentHash, _ = crypto.CreateDocumentHash(marshal, bhs.Config.PublicKey)
 		bhs.CurExec.Node = prepare.CurProposal
-		partSig, _ := go_hotstuff.TSign(bhs.CurExec.DocumentHash, bhs.Config.PrivateKey, bhs.Config.PublicKey)
+		partSig, _ := crypto.TSign(bhs.CurExec.DocumentHash, bhs.Config.PrivateKey, bhs.Config.PublicKey)
 		partSigBytes, _ := json.Marshal(partSig)
 		prepareVoteMsg := bhs.VoteMsg(pb.MsgType_PREPARE_VOTE, bhs.CurExec.Node, nil, partSigBytes)
 		// send msg to leader
@@ -179,7 +180,7 @@ func (bhs *BasicHotStuff) handleMsg(msg *pb.Msg) {
 		prepareVote := msg.GetPrepareVote()
 		partSig := new(tcrsa.SigShare)
 		_ = json.Unmarshal(prepareVote.PartialSig, partSig)
-		if err := go_hotstuff.VerifyPartSig(partSig, bhs.CurExec.DocumentHash, bhs.Config.PublicKey); err != nil {
+		if err := crypto.VerifyPartSig(partSig, bhs.CurExec.DocumentHash, bhs.Config.PublicKey); err != nil {
 			logger.Warn("[HOTSTUFF PREPARE-VOTE] Partial signature is not correct")
 			return
 		}
@@ -187,7 +188,7 @@ func (bhs *BasicHotStuff) handleMsg(msg *pb.Msg) {
 		bhs.CurExec.PrepareVote = append(bhs.CurExec.PrepareVote, partSig)
 		if len(bhs.CurExec.PrepareVote) == bhs.Config.F*2+1 {
 			// create full signature
-			signature, _ := go_hotstuff.CreateFullSignature(bhs.CurExec.DocumentHash, bhs.CurExec.PrepareVote, bhs.Config.PublicKey)
+			signature, _ := crypto.CreateFullSignature(bhs.CurExec.DocumentHash, bhs.CurExec.PrepareVote, bhs.Config.PublicKey)
 			qc := bhs.QC(pb.MsgType_PREPARE_VOTE, signature, prepareVote.BlockHash)
 			bhs.PrepareQC = qc
 			preCommitMsg := bhs.Msg(pb.MsgType_PRECOMMIT, bhs.CurExec.Node, qc)
@@ -203,7 +204,7 @@ func (bhs *BasicHotStuff) handleMsg(msg *pb.Msg) {
 			return
 		}
 		bhs.PrepareQC = msg.GetPreCommit().PrepareQC
-		partSig, _ := go_hotstuff.TSign(bhs.CurExec.DocumentHash, bhs.Config.PrivateKey, bhs.Config.PublicKey)
+		partSig, _ := crypto.TSign(bhs.CurExec.DocumentHash, bhs.Config.PrivateKey, bhs.Config.PublicKey)
 		partSigBytes, _ := json.Marshal(partSig)
 		preCommitVote := bhs.VoteMsg(pb.MsgType_PRECOMMIT_VOTE, bhs.CurExec.Node, nil, partSigBytes)
 		bhs.Unicast(bhs.GetNetworkInfo()[bhs.GetLeader()], preCommitVote)
@@ -219,13 +220,13 @@ func (bhs *BasicHotStuff) handleMsg(msg *pb.Msg) {
 		preCommitVote := msg.GetPreCommitVote()
 		partSig := new(tcrsa.SigShare)
 		_ = json.Unmarshal(preCommitVote.PartialSig, partSig)
-		if err := go_hotstuff.VerifyPartSig(partSig, bhs.CurExec.DocumentHash, bhs.Config.PublicKey); err != nil {
+		if err := crypto.VerifyPartSig(partSig, bhs.CurExec.DocumentHash, bhs.Config.PublicKey); err != nil {
 			logger.Warn("[HOTSTUFF PRECOMMIT-VOTE] Partial signature is not correct")
 			return
 		}
 		bhs.CurExec.PreCommitVote = append(bhs.CurExec.PreCommitVote, partSig)
 		if len(bhs.CurExec.PreCommitVote) == 2*bhs.Config.F+1 {
-			signature, _ := go_hotstuff.CreateFullSignature(bhs.CurExec.DocumentHash, bhs.CurExec.PreCommitVote, bhs.Config.PublicKey)
+			signature, _ := crypto.CreateFullSignature(bhs.CurExec.DocumentHash, bhs.CurExec.PreCommitVote, bhs.Config.PublicKey)
 			preCommitQC := bhs.QC(pb.MsgType_PRECOMMIT_VOTE, signature, bhs.CurExec.Node.Hash)
 			// vote self
 			bhs.PreCommitQC = preCommitQC
@@ -242,7 +243,7 @@ func (bhs *BasicHotStuff) handleMsg(msg *pb.Msg) {
 			return
 		}
 		bhs.PreCommitQC = commit.PreCommitQC
-		partSig, _ := go_hotstuff.TSign(bhs.CurExec.DocumentHash, bhs.Config.PrivateKey, bhs.Config.PublicKey)
+		partSig, _ := crypto.TSign(bhs.CurExec.DocumentHash, bhs.Config.PrivateKey, bhs.Config.PublicKey)
 		partSigBytes, _ := json.Marshal(partSig)
 		commitVoteMsg := bhs.VoteMsg(pb.MsgType_COMMIT_VOTE, bhs.CurExec.Node, nil, partSigBytes)
 		bhs.Unicast(bhs.GetNetworkInfo()[bhs.GetLeader()], commitVoteMsg)
@@ -257,13 +258,13 @@ func (bhs *BasicHotStuff) handleMsg(msg *pb.Msg) {
 		commitVoteMsg := msg.GetCommitVote()
 		partSig := new(tcrsa.SigShare)
 		_ = json.Unmarshal(commitVoteMsg.PartialSig, partSig)
-		if err := go_hotstuff.VerifyPartSig(partSig, bhs.CurExec.DocumentHash, bhs.Config.PublicKey); err != nil {
+		if err := crypto.VerifyPartSig(partSig, bhs.CurExec.DocumentHash, bhs.Config.PublicKey); err != nil {
 			logger.Warn("[HOTSTUFF COMMIT-VOTE] Partial signature is not correct")
 			return
 		}
 		bhs.CurExec.CommitVote = append(bhs.CurExec.CommitVote, partSig)
 		if len(bhs.CurExec.CommitVote) == 2*bhs.Config.F+1 {
-			signature, _ := go_hotstuff.CreateFullSignature(bhs.CurExec.DocumentHash, bhs.CurExec.CommitVote, bhs.Config.PublicKey)
+			signature, _ := crypto.CreateFullSignature(bhs.CurExec.DocumentHash, bhs.CurExec.CommitVote, bhs.Config.PublicKey)
 			commitQC := bhs.QC(pb.MsgType_COMMIT_VOTE, signature, bhs.CurExec.Node.Hash)
 			// vote self
 			bhs.CommitQC = commitQC
@@ -351,8 +352,8 @@ func (bhs *BasicHotStuff) batchEvent(cmds []string) {
 	prepareMsg := bhs.Msg(pb.MsgType_PREPARE, node, bhs.HighQC)
 	// vote self
 	marshal, _ := proto.Marshal(prepareMsg)
-	bhs.CurExec.DocumentHash, _ = go_hotstuff.CreateDocumentHash(marshal, bhs.Config.PublicKey)
-	partSig, _ := go_hotstuff.TSign(bhs.CurExec.DocumentHash, bhs.Config.PrivateKey, bhs.Config.PublicKey)
+	bhs.CurExec.DocumentHash, _ = crypto.CreateDocumentHash(marshal, bhs.Config.PublicKey)
+	partSig, _ := crypto.TSign(bhs.CurExec.DocumentHash, bhs.Config.PrivateKey, bhs.Config.PublicKey)
 	bhs.CurExec.PrepareVote = append(bhs.CurExec.PrepareVote, partSig)
 	// broadcast prepare msg
 	bhs.Broadcast(prepareMsg)

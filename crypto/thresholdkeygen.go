@@ -1,5 +1,5 @@
 // threshold
-package hotstuff
+package crypto
 
 import (
 	"encoding/json"

@@ -3,11 +3,11 @@ package config
 import (
 	"time"
 
-	"github.com/hyperledger/fabric/orderer/consensus/hotstuff"
-	"github.com/hyperledger/fabric/orderer/consensus/hotstuff/logging"
 	"github.com/niclabs/tcrsa"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+	"github.com/theodocius271/hotstuff/crypto"
+	"github.com/theodocius271/hotstuff/logging"
 )
 
 var logger = logging.GetLogger()
@@ -64,7 +64,7 @@ func (hsc *HotStuffConfig) ReadConfig() {
 	logrus.Debugf("leader schedule = %v", leaderSchedule)
 	hsc.LeaderSchedule = leaderSchedule
 	publicKeyPath := viper.GetString("hotstuff.pubkeypath")
-	publicKey, err := hotstuff.ReadThresholdPublicKeyFromFile(publicKeyPath)
+	publicKey, err := crypto.ReadThresholdPublicKeyFromFile(publicKeyPath)
 	if err != nil {
 		logger.Fatal(err)
 	}

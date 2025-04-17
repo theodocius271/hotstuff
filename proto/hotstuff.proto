@@ -1,6 +1,10 @@
 syntax = "proto3";
 package proto;
-import "common.proto";
+
+import "fabric.proto";
+import "common/common.proto";
+
+option go_package = "github.com/theodocius271/hotstuff/proto";
 
 message Msg {
   oneof Payload {
@@ -67,9 +71,18 @@ message NewView {
   uint64 viewNum = 2;
 }
 
+//message Request {
+//  string cmd = 1;
+//  string clientAddress = 2;
+//}
+
 message Request {
-  string cmd = 1;
-  string clientAddress = 2;
+  common.Envelope envelope = 1;
+  string channal_id = 2;
+  uint64 config_seq = 3;
+  bool is_normal = 4;
+  uint64 time_stamp = 5;
+  string client_address = 6;
 }
 
 message Reply {
