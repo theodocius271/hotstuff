@@ -54,7 +54,7 @@ func (c *Chain) Order(env *common.Envelope, configSeq uint64) error {
 
 	// 5. 转发给主节点
 	c.logger.Debugf("Ordering normal transaction, sending request to primary node")
-	return c.SendPrimary(msg)
+	return c.bhs.Unicast(c.bhs.GetNetworkInfo()[c.bhs.GetLeader()], msg)
 }
 
 // Configure 处理配置交易的接收，将其封装为Request并转发给主节点
@@ -90,8 +90,8 @@ func (c *Chain) Configure(env *common.Envelope, configSeq uint64) error {
 	}
 
 	// 6. 转发给主节点
-	// c.logger.Debugf("Ordering config transaction with config sequence %d, sending request to primary node", configSeq)
-	return c.SendPrimary(msg)
+	c.logger.Debugf("Ordering config transaction with config sequence %d, sending request to primary node", configSeq)
+	return c.bhs.Unicast(c.bhs.GetNetworkInfo()[c.bhs.GetLeader()], msg)
 }
 
 // 辅助方法：从交易中提取客户端信息
