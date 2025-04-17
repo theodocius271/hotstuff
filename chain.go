@@ -20,7 +20,8 @@ type Chain struct {
 
 func NewChain(support consensus.ConsenterSupport) *Chain {
 	logger.Info("NewChain - ", support.ChainID())
-
+	ch := &Chain{}
+	return ch
 }
 
 func (c *Chain) Order(env *common.Envelope, configSeq uint64) error {
