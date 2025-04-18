@@ -12,6 +12,7 @@ message Block {
   repeated common.Envelope commands = 4;
   QuorumCert Justify = 5;
   bool committed = 6;
+  bool isNormal = 7;
 }
 
 enum MsgType {
