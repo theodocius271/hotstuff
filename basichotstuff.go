@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"strconv"
 
+	"github.com/hyperledger/fabric/orderer/consensus"
 	"github.com/hyperledger/fabric/protos/common"
 	"github.com/niclabs/tcrsa"
 	"github.com/theodocius271/hotstuff/config"
@@ -22,16 +23,18 @@ type BasicHotStuff struct {
 	// it may cause a bug. The parameter 'decided' is used to avoid it to happen temporarily.
 	// TODO: find a better way to fix the bug.
 	decided bool
+	support consensus.ConsenterSupport
 }
 
-func NewBasicHotStuff(id int, handleMethod func(string) string) *BasicHotStuff {
+// Begin RecvMsg; TODO: Might consider mv 'go RecvMsg' to Chain.Start()
+func NewBasicHotStuff(id uint32, handleMethod func(string) string, support consensus.ConsenterSupport) *BasicHotStuff {
 	msgEntrance := make(chan *pb.Msg)
 	bhs := &BasicHotStuff{}
 	bhs.MsgEntrance = msgEntrance
-	bhs.ID = uint32(id)
+	bhs.ID = id
 	bhs.View = NewView(1, 1)
 	logger.Debugf("[HOTSTUFF] Init block storage, replica id: %d", id)
-	bhs.BlockStorage = NewBlockStorageImpl(strconv.Itoa(id))
+	bhs.BlockStorage = NewBlockStorageImpl(strconv.Itoa(int(id)))
 	logger.Debugf("[HOTSTUFF] Generate genesis block")
 	genesisBlock := GenerateGenesisBlock()
 	err := bhs.BlockStorage.Put(genesisBlock)
@@ -85,10 +88,23 @@ func NewBasicHotStuff(id int, handleMethod func(string) string) *BasicHotStuff {
 	bhs.Config.PrivateKey = privateKey
 	bhs.ProcessMethod = handleMethod
 	bhs.decided = false
+
+	bhs.support = support
+
 	go bhs.receiveMsg()
 
 	return bhs
 }
+
+/*
+func (bhs *BasicHotStuff) RegisterChain(support consensus.ConsenterSupport) {
+	if _, ok := bhs.supports[support.ChainID()]; ok {
+		return
+	}
+	logger.Printf("[Node] Register the chain(%s)", support.ChainID())
+	bhs.supports[support.ChainID()] = support
+}
+*/
 
 // receiveMsg receive msg from msg channel
 func (bhs *BasicHotStuff) receiveMsg() {
@@ -120,6 +136,7 @@ func (bhs *BasicHotStuff) receiveMsg() {
 		case <-bhs.BatchTimeChan.Timeout():
 			bhs.BatchTimeChan.Init()
 			bhs.batchEvent(bhs.CmdSet.GetFirst(int(bhs.Config.BatchSize)))
+			// bhs.batchEvent(bhs.CmdSet.GetFirst(int(bhs.support.SharedConfig().BatchSize().MaxMessageCount)))
 		}
 	}
 }
@@ -299,6 +316,19 @@ func (bhs *BasicHotStuff) handleMsg(msg *pb.Msg) {
 		if bhs.CurExec.Node != nil || bhs.View.ViewChanging {
 			return
 		}
+
+		/*
+			batches, _ := bhs.support.BlockCutter().Ordered(request.Envelope)
+			logger.Debugf("[HOTSTUFF] Ordered request, got %d batches", len(batches))
+			if len(batches) > 0 {
+				bhs.BatchTimeChan.Stop()
+				bhs.batchEvent(batches[0])
+				if len(batches) > 1 {
+					logger.Warningf("[HOTSTUFF] BlockCutter returned %d batches, but only processing the first one due to HotStuff view constraints", len(batches))
+				}
+			}
+		*/
+
 		// start batch timer
 		bhs.BatchTimeChan.SoftStartTimer()
 		// if the length of unprocessed cmd equals to batch size, stop timer and call handleMsg to send prepare msg
@@ -319,7 +349,7 @@ func (bhs *BasicHotStuff) handleMsg(msg *pb.Msg) {
 
 func (bhs *BasicHotStuff) processProposal() {
 	// process proposal
-	go bhs.ProcessProposal(bhs.CurExec.Node.Commands)
+	go bhs.ProcessProposal(bhs.CurExec.Node.Commands, bhs.support)
 	// store block
 	bhs.CurExec.Node.Committed = true
 	go bhs.BlockStorage.Put(bhs.CurExec.Node)

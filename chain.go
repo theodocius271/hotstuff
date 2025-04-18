@@ -2,9 +2,10 @@ package hotstuff
 
 import (
 	"fmt"
+	"os"
+	"strconv"
 	"time"
 
-	"github.com/hyperledger/fabric/common/flogging"
 	"github.com/hyperledger/fabric/orderer/consensus"
 	"github.com/hyperledger/fabric/protos/common"
 	"github.com/pkg/errors"
@@ -15,12 +16,25 @@ type Chain struct {
 	bhs      *BasicHotStuff
 	support  consensus.ConsenterSupport
 	exitChan chan struct{}
-	logger   *flogging.FabricLogger
 }
 
 func NewChain(support consensus.ConsenterSupport) *Chain {
 	logger.Info("NewChain - ", support.ChainID())
 	ch := &Chain{}
+	currentNodeIDStr := os.Getenv("ORDERER_HOTSTUFF_NODEID")
+	if currentNodeIDStr == "" {
+		logger.Infof("ORDERER_HOTSTUFF_NODEID environment variable not set")
+		return nil
+	}
+	currentNodeID, err := strconv.ParseUint(currentNodeIDStr, 10, 32)
+	if err != nil {
+		logger.Infof("invalid ORDERER_HOTSTUFF_NODEID: %v", err)
+		return nil
+	}
+	ch.bhs = NewBasicHotStuff(uint32(currentNodeID), nil, support)
+	ch.support = support
+	ch.exitChan = make(chan struct{})
+
 	return ch
 }
 
@@ -53,7 +67,7 @@ func (c *Chain) Order(env *common.Envelope, configSeq uint64) error {
 	}
 
 	// redireat to prime
-	c.logger.Debugf("Ordering normal transaction, sending request to primary node")
+	logger.Debugf("Ordering normal transaction, sending request to primary node")
 	return c.bhs.Unicast(c.bhs.GetNetworkInfo()[c.bhs.GetLeader()], msg)
 }
 
@@ -83,7 +97,7 @@ func (c *Chain) Configure(env *common.Envelope, configSeq uint64) error {
 		},
 	}
 
-	c.logger.Debugf("Ordering config transaction with config sequence %d, sending request to primary node", configSeq)
+	logger.Debugf("Ordering config transaction with config sequence %d, sending request to primary node", configSeq)
 	return c.bhs.Unicast(c.bhs.GetNetworkInfo()[c.bhs.GetLeader()], msg)
 }
 

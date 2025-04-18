@@ -23,8 +23,9 @@ services:
       - ORDERER_HOTSTUFF_CLUSTER=4:7050,1:7050,2:7050,3:7050
       - ORDERER_HOTSTUFF_TIMEOUT=3000
       - ORDERER_HOTSTUFF_BATCHTIMEOUT=6000
-      - ORDERER_HOTSTUFF_PUBLICKEYPATH=base64key1,base64key2,base64key3,base64key4
-      - ORDERER_HOTSTUFF_PRIVATEKEYPATH=base64key1,base64key2,base64key3,base64key4
+	  - ORDERER_HOTSTUFF_BATCHSIZE=50
+      - ORDERER_HOTSTUFF_PUBKEYPATH=base64key1,base64key2,base64key3,base64key4
+      - ORDERER_HOTSTUFF_PRIKEYPATH=base64key1,base64key2,base64key3,base64key4
 
 */
 
@@ -44,19 +45,20 @@ import (
 var logger = logging.GetLogger()
 
 type HotStuffConfig struct {
-	BatchTimeout time.Duration
-	Timeout      time.Duration
-	PublicKey    *tcrsa.KeyMeta
+	BatchSize    uint64         // ORDERER_HOTSTUFF_BATCHSIZE
+	BatchTimeout time.Duration  // ORDERER_HOTSTUFF_BATCHTIMEOUT
+	Timeout      time.Duration  // ORDERER_HOTSTUFF_TIMEOUT
+	PublicKey    *tcrsa.KeyMeta // ORDERER_HOTSTUFF_PUBKEYPATH
 	PrivateKey   *tcrsa.KeyShare
-	Cluster      []*ReplicaInfo
-	N            int
-	F            int
+	Cluster      []*ReplicaInfo // ORDERER_HOSTUFF_CLUSTER {ID: ADDRESS}
+	N            int            // LEN(CLUSTER)
+	F            int            // (N - 1) // 3
 }
 
 type ReplicaInfo struct {
 	ID         uint32
-	Address    string
-	PrivateKey string
+	Address    string `mapstructure:"listen-address"`
+	PrivateKey string `mapstructure:"privatekeypath"`
 }
 
 func NewHotStuffConfig() *HotStuffConfig {
@@ -67,6 +69,18 @@ func NewHotStuffConfig() *HotStuffConfig {
 
 func (config *HotStuffConfig) ReadConfig() {
 	logger.Debug("[HOTSTUFF] Read config")
+
+	batchSizeStr := os.Getenv("ORDERER_HOTSTUFF_BATCHSIZE")
+	if batchSizeStr == "" {
+		logger.Infof("ORDERER_HOTSTUFF_BATCHSIZE environment variable not set")
+		return
+	}
+	BatchSize, err := strconv.ParseUint(batchSizeStr, 10, 32)
+	if err == nil {
+		config.BatchSize = BatchSize
+	} else {
+		config.BatchSize = 10
+	}
 
 	timeoutStr := os.Getenv("ORDERER_HOTSTUFF_TIMEOUT")
 	if timeoutStr == "" {
@@ -92,7 +106,7 @@ func (config *HotStuffConfig) ReadConfig() {
 		config.BatchTimeout = 1000 * time.Millisecond
 	}
 
-	publicKeyPath := os.Getenv("ORDERER_HOTSTUFF_PUBLICKEYPATH")
+	publicKeyPath := os.Getenv("ORDERER_HOTSTUFF_PUBKEYPATH")
 	if publicKeyPath == "" {
 		logger.Infof("ORDERER_HOTSTUFF_PUBLICKEYPATH environment variable not set")
 		return
@@ -102,6 +116,46 @@ func (config *HotStuffConfig) ReadConfig() {
 		logger.Fatal(err)
 	}
 	config.PublicKey = publicKey
+
+	/*
+		clusterStr := os.Getenv("ORDERER_HOTSTUFF_CLUSTER")
+		if clusterStr == "" {
+			logger.Infof("ORDERER_HOTSTUFF_CLUSTER environment variable not set")
+			return
+		}
+		replicaPairs := strings.Split(clusterStr, ",")
+		replicas := make([]*ReplicaInfo, 0, len(replicaPairs))
+		for _, pair := range replicaPairs {
+			parts := strings.Split(pair, ":")
+			if len(parts) != 2 {
+				logger.Infof("invalid replica format: %s, expected format 'id:address'", pair)
+				return
+			}
+			id, err := strconv.ParseUint(parts[0], 10, 32)
+			if err != nil {
+				logger.Infof("invalid replica ID: %s: %v", parts[0], err)
+				return
+			}
+			replica := &ReplicaInfo{
+				ID:      uint32(id),
+				Address: parts[1],
+			}*/
+
+	currentNodeIDStr := os.Getenv("ORDERER_HOTSTUFF_NODEID")
+	if currentNodeIDStr == "" {
+		logger.Infof("ORDERER_HOTSTUFF_NODEID environment variable not set")
+		return
+	}
+	currentNodeID, err := strconv.ParseUint(currentNodeIDStr, 10, 32)
+	if err != nil {
+		logger.Infof("invalid ORDERER_HOTSTUFF_NODEID: %v", err)
+		return
+	}
+	currentNodePrivKeyPath := os.Getenv("ORDERER_HOTSTUFF_PRIKEYPATH")
+	if currentNodePrivKeyPath == "" {
+		logger.Infof("ORDERER_HOTSTUFF_PRIKEYPATH environment variable not set")
+		return
+	}
 
 	clusterStr := os.Getenv("ORDERER_HOTSTUFF_CLUSTER")
 	if clusterStr == "" {
@@ -124,6 +178,9 @@ func (config *HotStuffConfig) ReadConfig() {
 		replica := &ReplicaInfo{
 			ID:      uint32(id),
 			Address: parts[1],
+		}
+		if id == currentNodeID {
+			replica.PrivateKey = currentNodePrivKeyPath
 		}
 		replicas = append(replicas, replica)
 	}

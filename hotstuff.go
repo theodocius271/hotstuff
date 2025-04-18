@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"os"
 	"strconv"
 
+	"github.com/hyperledger/fabric/orderer/consensus"
 	"github.com/hyperledger/fabric/protos/common"
 	"github.com/niclabs/tcrsa"
 	"github.com/theodocius271/hotstuff/config"
@@ -137,7 +137,6 @@ func (h *HotStuffImpl) VoteMsg(msgType pb.MsgType, node *pb.Block, qc *pb.Quorum
 	return msg
 }
 
-// TODO: MODIFIED INTO FABRIC'S BLOCK
 func (h *HotStuffImpl) CreateLeaf(parentHash []byte, cmds []*common.Envelope, justify *pb.QuorumCert) *pb.Block {
 	b := &pb.Block{
 		ParentHash: parentHash,
@@ -257,19 +256,21 @@ func (h *HotStuffImpl) Unicast(address string, msg *pb.Msg) error {
 	return nil
 }
 
-func (h *HotStuffImpl) ProcessProposal(cmds []*common.Envelope) {
-	for _, cmd := range cmds {
-		result := h.ProcessMethod(cmd)
-		msg := &pb.Msg{Payload: &pb.Msg_Reply{Reply: &pb.Reply{Result: result, Command: cmd}}}
-		err := h.Unicast("localhost:9999", msg)
-		if err != nil {
-			fmt.Println(err.Error())
+// TODO: Use support consensus.ConsenterSupport
+func (h *HotStuffImpl) ProcessProposal(cmds []*common.Envelope, support consensus.ConsenterSupport) {
+	/*
+		for _, cmd := range cmds {
+			result := h.ProcessMethod(cmd)
+			msg := &pb.Msg{Payload: &pb.Msg_Reply{Reply: &pb.Reply{Result: result, Command: cmd}}}
+			err := h.Unicast("localhost:9999", msg)
+			if err != nil {
+				fmt.Println(err.Error())
+			}
 		}
-	}
-	h.CmdSet.Remove(cmds...)
+		h.CmdSet.Remove(cmds...)
+	*/
 }
 
-// TODO CHANGE BLOCK
 // GenerateGenesisBlock returns genesis block
 func GenerateGenesisBlock() *pb.Block {
 	genesisBlock := &pb.Block{
