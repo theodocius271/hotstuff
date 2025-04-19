@@ -3,7 +3,6 @@ package hotstuff
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"strconv"
 
 	"github.com/hyperledger/fabric/orderer/consensus"
@@ -414,7 +413,7 @@ func (bhs *BasicHotStuff) writeLedger(block *pb.Block) {
 		if tx.ConfigSeq < seq {
 			envelope, _, err = bhs.support.ProcessConfigMsg(tx.Envelope)
 			if err != nil {
-				fmt.Errorf("process config msg failed: %v", err)
+				logger.Errorf("process config msg failed: %v", err)
 				return
 			}
 		} else {
@@ -422,7 +421,7 @@ func (bhs *BasicHotStuff) writeLedger(block *pb.Block) {
 		}
 		fabricBlock := bhs.support.CreateNextBlock([]*common.Envelope{envelope})
 		if fabricBlock == nil {
-			fmt.Errorf("failed to create config block")
+			logger.Errorf("failed to create config block")
 			return
 		}
 		bhs.support.WriteConfigBlock(fabricBlock, nil)

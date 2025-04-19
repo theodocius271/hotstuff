@@ -5,15 +5,20 @@ import "protos/common/common.proto";
 
 option go_package = "github.com/hyperledger/fabric/orderer/consensus/hotstuff/proto";
 
+message Transaction {
+  common.Envelope envelope = 1;
+  string channal_id = 2;
+  uint64 config_seq = 3;
+}
+
 message Block {
   bytes ParentHash = 1;
   bytes Hash = 2;
   uint64 height = 3;
-  uint64 configSeq = 4;
-  repeated common.Envelope commands = 5;
-  QuorumCert Justify = 6;
-  bool committed = 7;
-  bool isNormal = 8;
+  repeated Transaction commands = 4;
+  QuorumCert Justify = 5;
+  bool committed = 6;
+  bool isNormal = 7;
 }
 
 enum MsgType {

@@ -3,15 +3,10 @@
 
 package common // import "github.com/hyperledger/fabric/protos/common"
 
-import (
-	fmt "fmt"
-	proto "github.com/golang/protobuf/proto"
-
-	math "math"
-
-	timestamp "github.com/golang/protobuf/ptypes/timestamp"
-	"google.golang.org/protobuf/reflect/protoreflect"
-)
+import proto "github.com/golang/protobuf/proto"
+import fmt "fmt"
+import math "math"
+import timestamp "github.com/golang/protobuf/ptypes/timestamp"
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
@@ -545,11 +540,6 @@ type Envelope struct {
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
-}
-
-// ProtoReflect implements protoreflect.ProtoMessage.
-func (e *Envelope) ProtoReflect() protoreflect.Message {
-	panic("unimplemented")
 }
 
 func (m *Envelope) Reset()         { *m = Envelope{} }

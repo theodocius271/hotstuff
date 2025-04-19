@@ -94,9 +94,9 @@ func (config *HotStuffConfig) ReadConfig() {
 		config.Timeout = 2000 * time.Millisecond
 	}
 
-	batchTimeoutStr := os.Getenv("ORDERER_HOTSTUFF_TIMEOUT")
+	batchTimeoutStr := os.Getenv("ORDERER_HOTSTUFF_BATCHTIMEOUT")
 	if batchTimeoutStr == "" {
-		logger.Infof("ORDERER_HOTSTUFF_TIMEOUT environment variable not set")
+		logger.Infof("ORDERER_HOTSTUFF_BATCHTIMEOUT environment variable not set")
 		return
 	}
 	batchTimeout, err := strconv.Atoi(batchTimeoutStr)

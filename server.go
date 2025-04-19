@@ -18,7 +18,6 @@ import (
 	"google.golang.org/grpc"
 )
 
-// Server 封装了 HotStuff 服务器的功能
 type Server struct {
 	service       *HotStuffService
 	grpcServer    *grpc.Server
@@ -30,13 +29,6 @@ type Server struct {
 	shutdownMutex sync.Mutex
 }
 
-// Config 包含服务器配置信息
-type Config struct {
-	Address     string        // 服务地址，格式为 ip:port
-	IdleTimeout time.Duration // 空闲连接超时时间
-}
-
-// NewServer 创建一个新的 HotStuff 服务器
 func NewServer(id uint32, support consensus.ConsenterSupport) *Server {
 
 	server := &Server{
@@ -46,17 +38,14 @@ func NewServer(id uint32, support consensus.ConsenterSupport) *Server {
 		shuttingDown: false,
 	}
 
-	// 创建 HotStuff 服务
 	server.service = NewHotStuffService(NewBasicHotStuff(id, support))
 	server.address = server.service.hotStuff.GetSelfInfo().Address
 
-	// 创建 gRPC 服务器，添加拦截器用于日志记录和恢复
 	opts := []grpc.ServerOption{
 		grpc.UnaryInterceptor(server.unaryInterceptor),
 	}
 	server.grpcServer = grpc.NewServer(opts...)
 
-	// 注册 HotStuff 服务
 	pb.RegisterHotStuffServiceServer(server.grpcServer, server.service)
 
 	return server
@@ -129,6 +118,7 @@ func (s *Server) RunAsync() error {
 }
 
 func (s *Server) handleSignals() {
+	defer signal.Stop(s.sigChan)
 	for {
 		select {
 		case sig := <-s.sigChan:

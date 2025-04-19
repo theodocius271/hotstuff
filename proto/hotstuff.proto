@@ -77,12 +77,10 @@ message NewView {
 //}
 
 message Request {
-  common.Envelope envelope = 1;
-  string channal_id = 2;
-  uint64 config_seq = 3;
-  bool is_normal = 4;
-  uint64 time_stamp = 5;
-  string client_address = 6;
+  Transaction Transaction = 1;
+  bool is_normal = 2;
+  uint64 time_stamp = 3;
+  string client_address = 4;
 }
 
 message Reply {

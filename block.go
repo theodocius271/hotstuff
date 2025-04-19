@@ -42,7 +42,7 @@ func Hash(block *pb.Block) []byte {
 	for _, command := range block.Commands {
 		cmdByte, err := proto.Marshal(command)
 		if err != nil {
-			fmt.Errorf("failed to marshal envelope")
+			logger.Errorf("failed to marshal envelope")
 			return nil
 		}
 		hasher.Write(cmdByte)

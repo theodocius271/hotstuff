@@ -28,12 +28,12 @@ func NewChain(support consensus.ConsenterSupport) *Chain {
 	}
 	currentNodeIDStr := os.Getenv("ORDERER_HOTSTUFF_NODEID")
 	if currentNodeIDStr == "" {
-		logger.Infof("ORDERER_HOTSTUFF_NODEID environment variable not set")
+		logger.Errorf("ORDERER_HOTSTUFF_NODEID environment variable not set")
 		return nil
 	}
 	currentNodeID, err := strconv.ParseUint(currentNodeIDStr, 10, 32)
 	if err != nil {
-		logger.Infof("invalid ORDERER_HOTSTUFF_NODEID: %v", err)
+		logger.Errorf("invalid ORDERER_HOTSTUFF_NODEID: %v", err)
 		return nil
 	}
 	ch.server = NewServer(uint32(currentNodeID), support)
@@ -136,14 +136,13 @@ func (ch *Chain) Halt() {
 	}
 	logger.Info("Halting HotStuff consensus chain")
 	ch.server.Shutdown()
-	ch.started = false
 	close(ch.exitChan)
+	ch.started = false
 
 }
 
 func (c *Chain) Start() {
 	logger.Info("Start() called, but chain was already started during creation")
-	// 不执行任何操作，因为已经在 NewChain 启动了服务器
 }
 
 func (ch *Chain) Errored() <-chan struct{} {
