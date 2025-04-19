@@ -9,10 +9,11 @@ message Block {
   bytes ParentHash = 1;
   bytes Hash = 2;
   uint64 height = 3;
-  repeated common.Envelope commands = 4;
-  QuorumCert Justify = 5;
-  bool committed = 6;
-  bool isNormal = 7;
+  uint64 configSeq = 4;
+  repeated common.Envelope commands = 5;
+  QuorumCert Justify = 6;
+  bool committed = 7;
+  bool isNormal = 8;
 }
 
 enum MsgType {

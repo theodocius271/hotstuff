@@ -7,7 +7,8 @@ import (
 )
 
 type HotStuffService struct {
-	hotStuff HotStuff
+	hotStuff *BasicHotStuff
+	pb.UnimplementedHotStuffServiceServer
 }
 
 func (basic *HotStuffService) SendMsg(ctx context.Context, in *pb.Msg) (*pb.Empty, error) {
@@ -24,10 +25,10 @@ func (basic *HotStuffService) SendReply(ctx context.Context, in *pb.Msg) (*pb.Em
 	return &pb.Empty{}, nil
 }
 
-func (basic *HotStuffService) GetImpl() HotStuff {
+func (basic *HotStuffService) GetImpl() *BasicHotStuff {
 	return basic.hotStuff
 }
 
-func NewHotStuffService(impl HotStuff) *HotStuffService {
+func NewHotStuffService(impl *BasicHotStuff) *HotStuffService {
 	return &HotStuffService{hotStuff: impl}
 }

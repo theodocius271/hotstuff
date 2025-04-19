@@ -86,21 +86,82 @@ func (MsgType) EnumDescriptor() ([]byte, []int) {
 	return file_orderer_consensus_hotstuff_proto_cmm_proto_rawDescGZIP(), []int{0}
 }
 
+type Transaction struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Envelope      *common.Envelope       `protobuf:"bytes,1,opt,name=envelope,proto3" json:"envelope,omitempty"`
+	ChannalId     string                 `protobuf:"bytes,2,opt,name=channal_id,json=channalId,proto3" json:"channal_id,omitempty"`
+	ConfigSeq     uint64                 `protobuf:"varint,3,opt,name=config_seq,json=configSeq,proto3" json:"config_seq,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Transaction) Reset() {
+	*x = Transaction{}
+	mi := &file_orderer_consensus_hotstuff_proto_cmm_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Transaction) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Transaction) ProtoMessage() {}
+
+func (x *Transaction) ProtoReflect() protoreflect.Message {
+	mi := &file_orderer_consensus_hotstuff_proto_cmm_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Transaction.ProtoReflect.Descriptor instead.
+func (*Transaction) Descriptor() ([]byte, []int) {
+	return file_orderer_consensus_hotstuff_proto_cmm_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *Transaction) GetEnvelope() *common.Envelope {
+	if x != nil {
+		return x.Envelope
+	}
+	return nil
+}
+
+func (x *Transaction) GetChannalId() string {
+	if x != nil {
+		return x.ChannalId
+	}
+	return ""
+}
+
+func (x *Transaction) GetConfigSeq() uint64 {
+	if x != nil {
+		return x.ConfigSeq
+	}
+	return 0
+}
+
 type Block struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	ParentHash    []byte                 `protobuf:"bytes,1,opt,name=ParentHash,proto3" json:"ParentHash,omitempty"`
 	Hash          []byte                 `protobuf:"bytes,2,opt,name=Hash,proto3" json:"Hash,omitempty"`
 	Height        uint64                 `protobuf:"varint,3,opt,name=height,proto3" json:"height,omitempty"`
-	Commands      []*common.Envelope     `protobuf:"bytes,4,rep,name=commands,proto3" json:"commands,omitempty"`
+	Commands      []*Transaction         `protobuf:"bytes,4,rep,name=commands,proto3" json:"commands,omitempty"`
 	Justify       *QuorumCert            `protobuf:"bytes,5,opt,name=Justify,proto3" json:"Justify,omitempty"`
 	Committed     bool                   `protobuf:"varint,6,opt,name=committed,proto3" json:"committed,omitempty"`
+	IsNormal      bool                   `protobuf:"varint,7,opt,name=isNormal,proto3" json:"isNormal,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Block) Reset() {
 	*x = Block{}
-	mi := &file_orderer_consensus_hotstuff_proto_cmm_proto_msgTypes[0]
+	mi := &file_orderer_consensus_hotstuff_proto_cmm_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -112,7 +173,7 @@ func (x *Block) String() string {
 func (*Block) ProtoMessage() {}
 
 func (x *Block) ProtoReflect() protoreflect.Message {
-	mi := &file_orderer_consensus_hotstuff_proto_cmm_proto_msgTypes[0]
+	mi := &file_orderer_consensus_hotstuff_proto_cmm_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -125,7 +186,7 @@ func (x *Block) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Block.ProtoReflect.Descriptor instead.
 func (*Block) Descriptor() ([]byte, []int) {
-	return file_orderer_consensus_hotstuff_proto_cmm_proto_rawDescGZIP(), []int{0}
+	return file_orderer_consensus_hotstuff_proto_cmm_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *Block) GetParentHash() []byte {
@@ -149,7 +210,7 @@ func (x *Block) GetHeight() uint64 {
 	return 0
 }
 
-func (x *Block) GetCommands() []*common.Envelope {
+func (x *Block) GetCommands() []*Transaction {
 	if x != nil {
 		return x.Commands
 	}
@@ -170,6 +231,13 @@ func (x *Block) GetCommitted() bool {
 	return false
 }
 
+func (x *Block) GetIsNormal() bool {
+	if x != nil {
+		return x.IsNormal
+	}
+	return false
+}
+
 type QuorumCert struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	BlockHash     []byte                 `protobuf:"bytes,1,opt,name=BlockHash,proto3" json:"BlockHash,omitempty"`
@@ -182,7 +250,7 @@ type QuorumCert struct {
 
 func (x *QuorumCert) Reset() {
 	*x = QuorumCert{}
-	mi := &file_orderer_consensus_hotstuff_proto_cmm_proto_msgTypes[1]
+	mi := &file_orderer_consensus_hotstuff_proto_cmm_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -194,7 +262,7 @@ func (x *QuorumCert) String() string {
 func (*QuorumCert) ProtoMessage() {}
 
 func (x *QuorumCert) ProtoReflect() protoreflect.Message {
-	mi := &file_orderer_consensus_hotstuff_proto_cmm_proto_msgTypes[1]
+	mi := &file_orderer_consensus_hotstuff_proto_cmm_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -207,7 +275,7 @@ func (x *QuorumCert) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use QuorumCert.ProtoReflect.Descriptor instead.
 func (*QuorumCert) Descriptor() ([]byte, []int) {
-	return file_orderer_consensus_hotstuff_proto_cmm_proto_rawDescGZIP(), []int{1}
+	return file_orderer_consensus_hotstuff_proto_cmm_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *QuorumCert) GetBlockHash() []byte {
@@ -242,16 +310,23 @@ var File_orderer_consensus_hotstuff_proto_cmm_proto protoreflect.FileDescriptor
 
 const file_orderer_consensus_hotstuff_proto_cmm_proto_rawDesc = "" +
 	"\n" +
-	"*orderer/consensus/hotstuff/proto/cmm.proto\x12\x05proto\x1a\x1aprotos/common/common.proto\"\xcc\x01\n" +
+	"*orderer/consensus/hotstuff/proto/cmm.proto\x12\x05proto\x1a\x1aprotos/common/common.proto\"y\n" +
+	"\vTransaction\x12,\n" +
+	"\benvelope\x18\x01 \x01(\v2\x10.common.EnvelopeR\benvelope\x12\x1d\n" +
+	"\n" +
+	"channal_id\x18\x02 \x01(\tR\tchannalId\x12\x1d\n" +
+	"\n" +
+	"config_seq\x18\x03 \x01(\x04R\tconfigSeq\"\xea\x01\n" +
 	"\x05Block\x12\x1e\n" +
 	"\n" +
 	"ParentHash\x18\x01 \x01(\fR\n" +
 	"ParentHash\x12\x12\n" +
 	"\x04Hash\x18\x02 \x01(\fR\x04Hash\x12\x16\n" +
-	"\x06height\x18\x03 \x01(\x04R\x06height\x12,\n" +
-	"\bcommands\x18\x04 \x03(\v2\x10.common.EnvelopeR\bcommands\x12+\n" +
+	"\x06height\x18\x03 \x01(\x04R\x06height\x12.\n" +
+	"\bcommands\x18\x04 \x03(\v2\x12.proto.TransactionR\bcommands\x12+\n" +
 	"\aJustify\x18\x05 \x01(\v2\x11.proto.QuorumCertR\aJustify\x12\x1c\n" +
-	"\tcommitted\x18\x06 \x01(\bR\tcommitted\"\x86\x01\n" +
+	"\tcommitted\x18\x06 \x01(\bR\tcommitted\x12\x1a\n" +
+	"\bisNormal\x18\a \x01(\bR\bisNormal\"\x86\x01\n" +
 	"\n" +
 	"QuorumCert\x12\x1c\n" +
 	"\tBlockHash\x18\x01 \x01(\fR\tBlockHash\x12\"\n" +
@@ -268,7 +343,7 @@ const file_orderer_consensus_hotstuff_proto_cmm_proto_rawDesc = "" +
 	"\vCOMMIT_VOTE\x10\x05\x12\v\n" +
 	"\aNEWVIEW\x10\x06\x12\n" +
 	"\n" +
-	"\x06DECIDE\x10\aB)Z'github.com/theodocius271/hotstuff/protob\x06proto3"
+	"\x06DECIDE\x10\aB@Z>github.com/hyperledger/fabric/orderer/consensus/hotstuff/protob\x06proto3"
 
 var (
 	file_orderer_consensus_hotstuff_proto_cmm_proto_rawDescOnce sync.Once
@@ -283,22 +358,24 @@ func file_orderer_consensus_hotstuff_proto_cmm_proto_rawDescGZIP() []byte {
 }
 
 var file_orderer_consensus_hotstuff_proto_cmm_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_orderer_consensus_hotstuff_proto_cmm_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_orderer_consensus_hotstuff_proto_cmm_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_orderer_consensus_hotstuff_proto_cmm_proto_goTypes = []any{
 	(MsgType)(0),            // 0: proto.MsgType
-	(*Block)(nil),           // 1: proto.Block
-	(*QuorumCert)(nil),      // 2: proto.QuorumCert
-	(*common.Envelope)(nil), // 3: common.Envelope
+	(*Transaction)(nil),     // 1: proto.Transaction
+	(*Block)(nil),           // 2: proto.Block
+	(*QuorumCert)(nil),      // 3: proto.QuorumCert
+	(*common.Envelope)(nil), // 4: common.Envelope
 }
 var file_orderer_consensus_hotstuff_proto_cmm_proto_depIdxs = []int32{
-	3, // 0: proto.Block.commands:type_name -> common.Envelope
-	2, // 1: proto.Block.Justify:type_name -> proto.QuorumCert
-	0, // 2: proto.QuorumCert.type:type_name -> proto.MsgType
-	3, // [3:3] is the sub-list for method output_type
-	3, // [3:3] is the sub-list for method input_type
-	3, // [3:3] is the sub-list for extension type_name
-	3, // [3:3] is the sub-list for extension extendee
-	0, // [0:3] is the sub-list for field type_name
+	4, // 0: proto.Transaction.envelope:type_name -> common.Envelope
+	1, // 1: proto.Block.commands:type_name -> proto.Transaction
+	3, // 2: proto.Block.Justify:type_name -> proto.QuorumCert
+	0, // 3: proto.QuorumCert.type:type_name -> proto.MsgType
+	4, // [4:4] is the sub-list for method output_type
+	4, // [4:4] is the sub-list for method input_type
+	4, // [4:4] is the sub-list for extension type_name
+	4, // [4:4] is the sub-list for extension extendee
+	0, // [0:4] is the sub-list for field type_name
 }
 
 func init() { file_orderer_consensus_hotstuff_proto_cmm_proto_init() }
@@ -312,7 +389,7 @@ func file_orderer_consensus_hotstuff_proto_cmm_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_orderer_consensus_hotstuff_proto_cmm_proto_rawDesc), len(file_orderer_consensus_hotstuff_proto_cmm_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   2,
+			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

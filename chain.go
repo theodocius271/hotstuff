@@ -13,14 +13,19 @@ import (
 )
 
 type Chain struct {
-	bhs      *BasicHotStuff
+	server   *Server
 	support  consensus.ConsenterSupport
 	exitChan chan struct{}
+	started  bool
 }
 
 func NewChain(support consensus.ConsenterSupport) *Chain {
 	logger.Info("NewChain - ", support.ChainID())
-	ch := &Chain{}
+	ch := &Chain{
+		support:  support,
+		started:  true,
+		exitChan: make(chan struct{}),
+	}
 	currentNodeIDStr := os.Getenv("ORDERER_HOTSTUFF_NODEID")
 	if currentNodeIDStr == "" {
 		logger.Infof("ORDERER_HOTSTUFF_NODEID environment variable not set")
@@ -31,9 +36,12 @@ func NewChain(support consensus.ConsenterSupport) *Chain {
 		logger.Infof("invalid ORDERER_HOTSTUFF_NODEID: %v", err)
 		return nil
 	}
-	ch.bhs = NewBasicHotStuff(uint32(currentNodeID), nil, support)
-	ch.support = support
-	ch.exitChan = make(chan struct{})
+	ch.server = NewServer(uint32(currentNodeID), support)
+	err = ch.server.RunAsync()
+	if err != nil {
+		logger.Errorf("Cannot Start Server")
+		return nil
+	}
 
 	return ch
 }
@@ -45,20 +53,22 @@ func (c *Chain) Order(env *common.Envelope, configSeq uint64) error {
 	}
 	select {
 	case <-c.exitChan:
-		logger.Info("[CHAIN error exit config]")
+		logger.Info("[CHAIN error exit normal]")
 		return fmt.Errorf("Exiting")
 	default:
 	}
 	channelID := c.support.ChainID()
 
+	transaction := &pb.Transaction{
+		Envelope:  env,
+		ChannalId: channelID,
+		ConfigSeq: configSeq,
+	}
 	// create msg{request}
 	request := &pb.Request{
-		Envelope:      env,
-		ChannalId:     channelID,
-		ConfigSeq:     configSeq,
-		IsNormal:      true,
-		TimeStamp:     uint64(time.Now().UnixNano()),
-		ClientAddress: c.extractClientInfo(env),
+		Transaction: transaction,
+		IsNormal:    true,
+		TimeStamp:   uint64(time.Now().UnixNano()),
 	}
 	msg := &pb.Msg{
 		Payload: &pb.Msg_Request{
@@ -66,9 +76,13 @@ func (c *Chain) Order(env *common.Envelope, configSeq uint64) error {
 		},
 	}
 
-	// redireat to prime
-	logger.Debugf("Ordering normal transaction, sending request to primary node")
-	return c.bhs.Unicast(c.bhs.GetNetworkInfo()[c.bhs.GetLeader()], msg)
+	// redireat to self
+	logger.Debugf("Ordering normal transaction, pakaging as Req")
+	// return c.bhs.Unicast(c.bhs.GetNetworkInfo()[c.bhs.GetLeader()], msg)
+	impl := c.server.GetHotStuffImpl()
+	// return impl.Unicast(impl.GetSelfInfo().Address, msg)
+	impl.GetMsgEntrance() <- msg
+	return nil
 }
 
 func (c *Chain) Configure(env *common.Envelope, configSeq uint64) error {
@@ -83,13 +97,16 @@ func (c *Chain) Configure(env *common.Envelope, configSeq uint64) error {
 	}
 	channelID := c.support.ChainID()
 
+	transaction := &pb.Transaction{
+		Envelope:  env,
+		ChannalId: channelID,
+		ConfigSeq: configSeq,
+	}
+	// create msg{request}
 	request := &pb.Request{
-		Envelope:      env,
-		ChannalId:     channelID,
-		ConfigSeq:     configSeq,
-		IsNormal:      false,
-		TimeStamp:     uint64(time.Now().UnixNano()),
-		ClientAddress: c.extractClientInfo(env),
+		Transaction: transaction,
+		IsNormal:    false,
+		TimeStamp:   uint64(time.Now().UnixNano()),
 	}
 	msg := &pb.Msg{
 		Payload: &pb.Msg_Request{
@@ -97,13 +114,13 @@ func (c *Chain) Configure(env *common.Envelope, configSeq uint64) error {
 		},
 	}
 
-	logger.Debugf("Ordering config transaction with config sequence %d, sending request to primary node", configSeq)
-	return c.bhs.Unicast(c.bhs.GetNetworkInfo()[c.bhs.GetLeader()], msg)
-}
-
-func (c *Chain) extractClientInfo(env *common.Envelope) string {
-	// TODO find addr
-	return "0"
+	// redireat to self
+	logger.Debugf("Ordering Config transaction, pakaging as Req")
+	// return c.bhs.Unicast(c.bhs.GetNetworkInfo()[c.bhs.GetLeader()], msg)
+	impl := c.server.GetHotStuffImpl()
+	// return impl.Unicast(impl.GetSelfInfo().Address, msg)
+	impl.GetMsgEntrance() <- msg
+	return nil
 }
 
 func (ch *Chain) WaitReady() error {
@@ -113,9 +130,23 @@ func (ch *Chain) WaitReady() error {
 
 func (ch *Chain) Halt() {
 	logger.Info("halt")
-	select {
-	case <-ch.exitChan:
-	default:
-		close(ch.exitChan)
+	if !ch.started {
+		logger.Info("Chain not running")
+		return
 	}
+	logger.Info("Halting HotStuff consensus chain")
+	ch.server.Shutdown()
+	ch.started = false
+	close(ch.exitChan)
+
+}
+
+func (c *Chain) Start() {
+	logger.Info("Start() called, but chain was already started during creation")
+	// 不执行任何操作，因为已经在 NewChain 启动了服务器
+}
+
+func (ch *Chain) Errored() <-chan struct{} {
+	logger.Errorf("We Are Doomed!")
+	return ch.exitChan
 }

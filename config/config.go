@@ -20,7 +20,7 @@ services:
       - ORDERER_GENERAL_CONSENSUSTYPE=hotstuff
       # HotStuff 环境变量
       - ORDERER_HOTSTUFF_NODEID=1
-      - ORDERER_HOTSTUFF_CLUSTER=4:7050,1:7050,2:7050,3:7050
+      - ORDERER_HOTSTUFF_CLUSTER=orderer0.example.com:7050;orderer1.example.com:7051;orderer2.example.com:7052
       - ORDERER_HOTSTUFF_TIMEOUT=3000
       - ORDERER_HOTSTUFF_BATCHTIMEOUT=6000
 	  - ORDERER_HOTSTUFF_BATCHSIZE=50
@@ -162,24 +162,18 @@ func (config *HotStuffConfig) ReadConfig() {
 		logger.Infof("ORDERER_HOTSTUFF_CLUSTER environment variable not set")
 		return
 	}
-	replicaPairs := strings.Split(clusterStr, ",")
-	replicas := make([]*ReplicaInfo, 0, len(replicaPairs))
-	for _, pair := range replicaPairs {
-		parts := strings.Split(pair, ":")
-		if len(parts) != 2 {
-			logger.Infof("invalid replica format: %s, expected format 'id:address'", pair)
-			return
-		}
-		id, err := strconv.ParseUint(parts[0], 10, 32)
-		if err != nil {
-			logger.Infof("invalid replica ID: %s: %v", parts[0], err)
+	addresses := strings.Split(clusterStr, ";")
+	replicas := make([]*ReplicaInfo, 0, len(addresses))
+	for id, address := range addresses {
+		if !strings.Contains(address, ":") {
+			logger.Infof("invalid replica address format: %s, expected format 'hostname:port'", address)
 			return
 		}
 		replica := &ReplicaInfo{
-			ID:      uint32(id),
-			Address: parts[1],
+			ID:      uint32(id + 1),
+			Address: address,
 		}
-		if id == currentNodeID {
+		if uint64(replica.ID) == currentNodeID {
 			replica.PrivateKey = currentNodePrivKeyPath
 		}
 		replicas = append(replicas, replica)

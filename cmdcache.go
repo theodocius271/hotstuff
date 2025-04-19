@@ -6,21 +6,21 @@ import (
 	"encoding/hex"
 	"sync"
 
-	"github.com/hyperledger/fabric/protos/common"
 	"github.com/hyperledger/fabric/protos/utils"
+	pb "github.com/theodocius271/hotstuff/proto"
 )
 
 type CmdSet interface {
-	Add(cmds ...*common.Envelope)
-	Remove(cmds ...*common.Envelope)
-	GetFirst(n int) []*common.Envelope
-	IsProposed(cmd *common.Envelope) bool
-	MarkProposed(cmds ...*common.Envelope)
-	UnMark(cmds ...*common.Envelope)
+	Add(cmds ...*pb.Transaction)
+	Remove(cmds ...*pb.Transaction)
+	GetFirst(n int) []*pb.Transaction
+	IsProposed(cmd *pb.Transaction) bool
+	MarkProposed(cmds ...*pb.Transaction)
+	UnMark(cmds ...*pb.Transaction)
 }
 
 type cmdElement struct {
-	cmd      *common.Envelope
+	cmd      *pb.Transaction
 	proposed bool
 }
 
@@ -38,14 +38,14 @@ func NewCmdSet() *cmdSetImpl {
 	return c
 }
 
-// Using Sha-256 to mark unique Envelope
-func getEnvelopeKey(envelope *common.Envelope) string {
-	hash := sha256.Sum256(utils.MarshalOrPanic(envelope))
+// Using Sha-256 to mark unique Transaction
+func getTransactionKey(tx *pb.Transaction) string {
+	hash := sha256.Sum256(utils.MarshalOrPanic(tx.Envelope))
 	return hex.EncodeToString(hash[:])
 }
 
 // Add add cmds to the list and set, duplicate one will be ignored
-func (c *cmdSetImpl) Add(cmds ...*common.Envelope) {
+func (c *cmdSetImpl) Add(cmds ...*pb.Transaction) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 
@@ -54,7 +54,7 @@ func (c *cmdSetImpl) Add(cmds ...*common.Envelope) {
 			continue
 		}
 
-		key := getEnvelopeKey(cmd)
+		key := getTransactionKey(cmd)
 		// avoid duplication
 		if _, ok := c.set[key]; ok {
 			continue
@@ -68,7 +68,7 @@ func (c *cmdSetImpl) Add(cmds ...*common.Envelope) {
 }
 
 // Remove remove commands from set and list
-func (c *cmdSetImpl) Remove(cmds ...*common.Envelope) {
+func (c *cmdSetImpl) Remove(cmds ...*pb.Transaction) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 
@@ -77,7 +77,7 @@ func (c *cmdSetImpl) Remove(cmds ...*common.Envelope) {
 			continue
 		}
 
-		key := getEnvelopeKey(cmd)
+		key := getTransactionKey(cmd)
 		if e, ok := c.set[key]; ok {
 			c.order.Remove(e)
 			delete(c.set, key)
@@ -86,14 +86,14 @@ func (c *cmdSetImpl) Remove(cmds ...*common.Envelope) {
 }
 
 // GetFirst return the top n unused commands from the list
-func (c *cmdSetImpl) GetFirst(n int) []*common.Envelope {
+func (c *cmdSetImpl) GetFirst(n int) []*pb.Transaction {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 
 	if len(c.set) == 0 {
 		return nil
 	}
-	cmds := make([]*common.Envelope, 0, n)
+	cmds := make([]*pb.Transaction, 0, n)
 	i := 0
 	// get the first element of list
 	e := c.order.Front()
@@ -110,7 +110,7 @@ func (c *cmdSetImpl) GetFirst(n int) []*common.Envelope {
 	return cmds
 }
 
-func (c *cmdSetImpl) IsProposed(cmd *common.Envelope) bool {
+func (c *cmdSetImpl) IsProposed(cmd *pb.Transaction) bool {
 	if cmd == nil {
 		return false
 	}
@@ -118,7 +118,7 @@ func (c *cmdSetImpl) IsProposed(cmd *common.Envelope) bool {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 
-	key := getEnvelopeKey(cmd)
+	key := getTransactionKey(cmd)
 	if e, ok := c.set[key]; ok {
 		return e.Value.(*cmdElement).proposed
 	}
@@ -126,7 +126,7 @@ func (c *cmdSetImpl) IsProposed(cmd *common.Envelope) bool {
 }
 
 // MarkProposed will mark the given commands as proposed and move them to the back of the queue
-func (c *cmdSetImpl) MarkProposed(cmds ...*common.Envelope) {
+func (c *cmdSetImpl) MarkProposed(cmds ...*pb.Transaction) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 
@@ -135,7 +135,7 @@ func (c *cmdSetImpl) MarkProposed(cmds ...*common.Envelope) {
 			continue
 		}
 
-		key := getEnvelopeKey(cmd)
+		key := getTransactionKey(cmd)
 		if e, ok := c.set[key]; ok {
 			e.Value.(*cmdElement).proposed = true
 			// Move to back so that it's not immediately deleted by a call to TrimToLen()
@@ -148,7 +148,7 @@ func (c *cmdSetImpl) MarkProposed(cmds ...*common.Envelope) {
 	}
 }
 
-func (c *cmdSetImpl) UnMark(cmds ...*common.Envelope) {
+func (c *cmdSetImpl) UnMark(cmds ...*pb.Transaction) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 
@@ -157,7 +157,7 @@ func (c *cmdSetImpl) UnMark(cmds ...*common.Envelope) {
 			continue
 		}
 
-		key := getEnvelopeKey(cmd)
+		key := getTransactionKey(cmd)
 		if e, ok := c.set[key]; ok {
 			e.Value.(*cmdElement).proposed = false
 			c.order.MoveToFront(e)

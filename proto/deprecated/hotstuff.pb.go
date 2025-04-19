@@ -7,7 +7,7 @@
 package proto
 
 import (
-	_ "github.com/hyperledger/fabric/protos/common"
+	common "github.com/hyperledger/fabric/protos/common"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -742,10 +742,12 @@ func (x *NewView) GetViewNum() uint64 {
 
 type Request struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Transaction   *Transaction           `protobuf:"bytes,1,opt,name=Transaction,proto3" json:"Transaction,omitempty"`
-	IsNormal      bool                   `protobuf:"varint,2,opt,name=is_normal,json=isNormal,proto3" json:"is_normal,omitempty"`
-	TimeStamp     uint64                 `protobuf:"varint,3,opt,name=time_stamp,json=timeStamp,proto3" json:"time_stamp,omitempty"`
-	ClientAddress string                 `protobuf:"bytes,4,opt,name=client_address,json=clientAddress,proto3" json:"client_address,omitempty"`
+	Envelope      *common.Envelope       `protobuf:"bytes,1,opt,name=envelope,proto3" json:"envelope,omitempty"`
+	ChannalId     string                 `protobuf:"bytes,2,opt,name=channal_id,json=channalId,proto3" json:"channal_id,omitempty"`
+	ConfigSeq     uint64                 `protobuf:"varint,3,opt,name=config_seq,json=configSeq,proto3" json:"config_seq,omitempty"`
+	IsNormal      bool                   `protobuf:"varint,4,opt,name=is_normal,json=isNormal,proto3" json:"is_normal,omitempty"`
+	TimeStamp     uint64                 `protobuf:"varint,5,opt,name=time_stamp,json=timeStamp,proto3" json:"time_stamp,omitempty"`
+	ClientAddress string                 `protobuf:"bytes,6,opt,name=client_address,json=clientAddress,proto3" json:"client_address,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -780,11 +782,25 @@ func (*Request) Descriptor() ([]byte, []int) {
 	return file_orderer_consensus_hotstuff_proto_hotstuff_proto_rawDescGZIP(), []int{10}
 }
 
-func (x *Request) GetTransaction() *Transaction {
+func (x *Request) GetEnvelope() *common.Envelope {
 	if x != nil {
-		return x.Transaction
+		return x.Envelope
 	}
 	return nil
+}
+
+func (x *Request) GetChannalId() string {
+	if x != nil {
+		return x.ChannalId
+	}
+	return ""
+}
+
+func (x *Request) GetConfigSeq() uint64 {
+	if x != nil {
+		return x.ConfigSeq
+	}
+	return 0
 }
 
 func (x *Request) GetIsNormal() bool {
@@ -918,13 +934,17 @@ const file_orderer_consensus_hotstuff_proto_hotstuff_proto_rawDesc = "" +
 	"\aviewNum\x18\x02 \x01(\x04R\aviewNum\"T\n" +
 	"\aNewView\x12/\n" +
 	"\tprepareQC\x18\x01 \x01(\v2\x11.proto.QuorumCertR\tprepareQC\x12\x18\n" +
-	"\aviewNum\x18\x02 \x01(\x04R\aviewNum\"\xa2\x01\n" +
-	"\aRequest\x124\n" +
-	"\vTransaction\x18\x01 \x01(\v2\x12.proto.TransactionR\vTransaction\x12\x1b\n" +
-	"\tis_normal\x18\x02 \x01(\bR\bisNormal\x12\x1d\n" +
+	"\aviewNum\x18\x02 \x01(\x04R\aviewNum\"\xd8\x01\n" +
+	"\aRequest\x12,\n" +
+	"\benvelope\x18\x01 \x01(\v2\x10.common.EnvelopeR\benvelope\x12\x1d\n" +
 	"\n" +
-	"time_stamp\x18\x03 \x01(\x04R\ttimeStamp\x12%\n" +
-	"\x0eclient_address\x18\x04 \x01(\tR\rclientAddress\"9\n" +
+	"channal_id\x18\x02 \x01(\tR\tchannalId\x12\x1d\n" +
+	"\n" +
+	"config_seq\x18\x03 \x01(\x04R\tconfigSeq\x12\x1b\n" +
+	"\tis_normal\x18\x04 \x01(\bR\bisNormal\x12\x1d\n" +
+	"\n" +
+	"time_stamp\x18\x05 \x01(\x04R\ttimeStamp\x12%\n" +
+	"\x0eclient_address\x18\x06 \x01(\tR\rclientAddress\"9\n" +
 	"\x05Reply\x12\x16\n" +
 	"\x06result\x18\x01 \x01(\tR\x06result\x12\x18\n" +
 	"\acommand\x18\x02 \x01(\tR\acommand2\x8c\x01\n" +
@@ -950,21 +970,21 @@ func file_orderer_consensus_hotstuff_proto_hotstuff_proto_rawDescGZIP() []byte {
 
 var file_orderer_consensus_hotstuff_proto_hotstuff_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_orderer_consensus_hotstuff_proto_hotstuff_proto_goTypes = []any{
-	(*Msg)(nil),           // 0: proto.Msg
-	(*Empty)(nil),         // 1: proto.Empty
-	(*Prepare)(nil),       // 2: proto.Prepare
-	(*PrepareVote)(nil),   // 3: proto.PrepareVote
-	(*PreCommit)(nil),     // 4: proto.PreCommit
-	(*PreCommitVote)(nil), // 5: proto.PreCommitVote
-	(*Commit)(nil),        // 6: proto.Commit
-	(*CommitVote)(nil),    // 7: proto.CommitVote
-	(*Decide)(nil),        // 8: proto.Decide
-	(*NewView)(nil),       // 9: proto.NewView
-	(*Request)(nil),       // 10: proto.Request
-	(*Reply)(nil),         // 11: proto.Reply
-	(*Block)(nil),         // 12: proto.Block
-	(*QuorumCert)(nil),    // 13: proto.QuorumCert
-	(*Transaction)(nil),   // 14: proto.Transaction
+	(*Msg)(nil),             // 0: proto.Msg
+	(*Empty)(nil),           // 1: proto.Empty
+	(*Prepare)(nil),         // 2: proto.Prepare
+	(*PrepareVote)(nil),     // 3: proto.PrepareVote
+	(*PreCommit)(nil),       // 4: proto.PreCommit
+	(*PreCommitVote)(nil),   // 5: proto.PreCommitVote
+	(*Commit)(nil),          // 6: proto.Commit
+	(*CommitVote)(nil),      // 7: proto.CommitVote
+	(*Decide)(nil),          // 8: proto.Decide
+	(*NewView)(nil),         // 9: proto.NewView
+	(*Request)(nil),         // 10: proto.Request
+	(*Reply)(nil),           // 11: proto.Reply
+	(*Block)(nil),           // 12: proto.Block
+	(*QuorumCert)(nil),      // 13: proto.QuorumCert
+	(*common.Envelope)(nil), // 14: common.Envelope
 }
 var file_orderer_consensus_hotstuff_proto_hotstuff_proto_depIdxs = []int32{
 	2,  // 0: proto.Msg.prepare:type_name -> proto.Prepare
@@ -986,7 +1006,7 @@ var file_orderer_consensus_hotstuff_proto_hotstuff_proto_depIdxs = []int32{
 	13, // 16: proto.CommitVote.qc:type_name -> proto.QuorumCert
 	13, // 17: proto.Decide.commitQC:type_name -> proto.QuorumCert
 	13, // 18: proto.NewView.prepareQC:type_name -> proto.QuorumCert
-	14, // 19: proto.Request.Transaction:type_name -> proto.Transaction
+	14, // 19: proto.Request.envelope:type_name -> common.Envelope
 	0,  // 20: proto.HotStuffService.SendMsg:input_type -> proto.Msg
 	0,  // 21: proto.HotStuffService.SendRequest:input_type -> proto.Msg
 	0,  // 22: proto.HotStuffService.SendReply:input_type -> proto.Msg

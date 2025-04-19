@@ -3,6 +3,7 @@ package hotstuff
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"strconv"
 
 	"github.com/hyperledger/fabric/orderer/consensus"
@@ -27,7 +28,7 @@ type BasicHotStuff struct {
 }
 
 // Begin RecvMsg; TODO: Might consider mv 'go RecvMsg' to Chain.Start()
-func NewBasicHotStuff(id uint32, handleMethod func(string) string, support consensus.ConsenterSupport) *BasicHotStuff {
+func NewBasicHotStuff(id uint32, support consensus.ConsenterSupport) *BasicHotStuff {
 	msgEntrance := make(chan *pb.Msg)
 	bhs := &BasicHotStuff{}
 	bhs.MsgEntrance = msgEntrance
@@ -86,7 +87,6 @@ func NewBasicHotStuff(id uint32, handleMethod func(string) string, support conse
 		logger.Fatal(err)
 	}
 	bhs.Config.PrivateKey = privateKey
-	bhs.ProcessMethod = handleMethod
 	bhs.decided = false
 
 	bhs.support = support
@@ -120,7 +120,7 @@ func (bhs *BasicHotStuff) receiveMsg() {
 			bhs.TimeChan = NewTimer(bhs.Config.Timeout * 2)
 			bhs.TimeChan.Init()
 			bhs.CmdSet.UnMark(bhs.CurExec.Node.Commands...)
-			bhs.BlockStorage.Put(bhs.CreateLeaf(bhs.CurExec.Node.ParentHash, nil, nil))
+			bhs.BlockStorage.Put(bhs.CreateLeaf(bhs.CurExec.Node.ParentHash, nil, nil, true))
 			bhs.View.ViewNum++
 			bhs.View.Primary = bhs.GetLeader()
 			// check if self is the next leader
@@ -135,7 +135,7 @@ func (bhs *BasicHotStuff) receiveMsg() {
 			}
 		case <-bhs.BatchTimeChan.Timeout():
 			bhs.BatchTimeChan.Init()
-			bhs.batchEvent(bhs.CmdSet.GetFirst(int(bhs.Config.BatchSize)))
+			bhs.batchEvent(bhs.CmdSet.GetFirst(int(bhs.Config.BatchSize)), true)
 			// bhs.batchEvent(bhs.CmdSet.GetFirst(int(bhs.support.SharedConfig().BatchSize().MaxMessageCount)))
 		}
 	}
@@ -307,7 +307,7 @@ func (bhs *BasicHotStuff) handleMsg(msg *pb.Msg) {
 		request := msg.GetRequest()
 		logger.Debugf("[HOTSTUFF] Got request msg, content:%s", request.String())
 		// put the cmd into the cmdset
-		bhs.CmdSet.Add(request.Envelope)
+		bhs.CmdSet.Add(request.Transaction)
 		// send request to the leader, if the replica is not the leader
 		if bhs.ID != bhs.GetLeader() {
 			bhs.Unicast(bhs.GetNetworkInfo()[bhs.GetLeader()], msg)
@@ -317,17 +317,11 @@ func (bhs *BasicHotStuff) handleMsg(msg *pb.Msg) {
 			return
 		}
 
-		/*
-			batches, _ := bhs.support.BlockCutter().Ordered(request.Envelope)
-			logger.Debugf("[HOTSTUFF] Ordered request, got %d batches", len(batches))
-			if len(batches) > 0 {
-				bhs.BatchTimeChan.Stop()
-				bhs.batchEvent(batches[0])
-				if len(batches) > 1 {
-					logger.Warningf("[HOTSTUFF] BlockCutter returned %d batches, but only processing the first one due to HotStuff view constraints", len(batches))
-				}
-			}
-		*/
+		if !request.IsNormal {
+			logger.Debugf("processing config transaction")
+			bhs.batchEvent(bhs.CmdSet.GetFirst(1), false)
+			break
+		}
 
 		// start batch timer
 		bhs.BatchTimeChan.SoftStartTimer()
@@ -338,7 +332,7 @@ func (bhs *BasicHotStuff) handleMsg(msg *pb.Msg) {
 			// stop timer
 			bhs.BatchTimeChan.Stop()
 			// create prepare msg
-			bhs.batchEvent(cmds)
+			bhs.batchEvent(cmds, true)
 		}
 		break
 	default:
@@ -348,11 +342,15 @@ func (bhs *BasicHotStuff) handleMsg(msg *pb.Msg) {
 }
 
 func (bhs *BasicHotStuff) processProposal() {
-	// process proposal
-	go bhs.ProcessProposal(bhs.CurExec.Node.Commands, bhs.support)
+
+	// process proposal, deprecated
+	// go bhs.ProcessProposal(bhs.CurExec.Node.Commands, bhs.support)
 	// store block
+	// used to have goroutine
 	bhs.CurExec.Node.Committed = true
-	go bhs.BlockStorage.Put(bhs.CurExec.Node)
+	bhs.BlockStorage.Put(bhs.CurExec.Node)
+	bhs.writeLedger(bhs.CurExec.Node)
+
 	// add view number
 	bhs.View.ViewNum++
 	bhs.View.Primary = bhs.GetLeader()
@@ -366,15 +364,78 @@ func (bhs *BasicHotStuff) processProposal() {
 	} else {
 		bhs.decided = true
 	}
+
 }
 
-func (bhs *BasicHotStuff) batchEvent(cmds []*common.Envelope) {
+func (bhs *BasicHotStuff) writeLedger(block *pb.Block) {
+	if block == nil {
+		logger.Errorf("block is nil")
+		return
+	}
+	seq := bhs.support.Sequence()
+	if block.IsNormal {
+		envelopes := make([]*common.Envelope, 0, len(block.Commands))
+		for _, tx := range block.Commands {
+			if tx == nil || tx.Envelope == nil {
+				logger.Errorf("Empty Transaction")
+				continue
+			}
+			if tx.ConfigSeq < seq {
+				if _, err := bhs.support.ProcessNormalMsg(tx.Envelope); err != nil {
+					logger.Errorf("Process Normal Msg Failed, %v", err)
+					continue
+				}
+			}
+			envelopes = append(envelopes, tx.Envelope)
+		}
+		if len(envelopes) == 0 {
+			logger.Errorf("no valid transactions to create block")
+			return
+		}
+		fabricBlock := bhs.support.CreateNextBlock(envelopes)
+		if fabricBlock == nil {
+			logger.Errorf("failed to create next block")
+			return
+		}
+		bhs.support.WriteBlock(fabricBlock, nil)
+
+	} else {
+		if len(block.Commands) == 0 {
+			logger.Errorf("no config transaction in block")
+			return
+		}
+		tx := block.Commands[0]
+		if tx == nil || tx.Envelope == nil {
+			logger.Errorf("empty config transaction")
+			return
+		}
+		var envelope *common.Envelope
+		var err error
+		if tx.ConfigSeq < seq {
+			envelope, _, err = bhs.support.ProcessConfigMsg(tx.Envelope)
+			if err != nil {
+				fmt.Errorf("process config msg failed: %v", err)
+				return
+			}
+		} else {
+			envelope = tx.Envelope
+		}
+		fabricBlock := bhs.support.CreateNextBlock([]*common.Envelope{envelope})
+		if fabricBlock == nil {
+			fmt.Errorf("failed to create config block")
+			return
+		}
+		bhs.support.WriteConfigBlock(fabricBlock, nil)
+	}
+}
+
+func (bhs *BasicHotStuff) batchEvent(cmds []*pb.Transaction, isNormal bool) {
 	if len(cmds) == 0 {
 		bhs.BatchTimeChan.SoftStartTimer()
 		return
 	}
 	// create prepare msg
-	node := bhs.CreateLeaf(bhs.BlockStorage.GetLastBlockHash(), cmds, nil)
+	node := bhs.CreateLeaf(bhs.BlockStorage.GetLastBlockHash(), cmds, nil, isNormal)
 	bhs.CurExec.Node = node
 	bhs.CmdSet.MarkProposed(cmds...)
 	if bhs.HighQC == nil {
