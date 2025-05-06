@@ -110,7 +110,7 @@ func (bhs *BasicHotStuff) receiveMsg() {
 	for {
 		select {
 		case msg, ok := <-bhs.MsgEntrance:
-			if ok {
+			if ok && msg.ChannalID == bhs.support.Sequence() {
 				go bhs.handleMsg(msg)
 			}
 		case <-bhs.TimeChan.Timeout():
@@ -344,11 +344,11 @@ func (bhs *BasicHotStuff) processProposal() {
 
 	// process proposal, deprecated
 	// go bhs.ProcessProposal(bhs.CurExec.Node.Commands, bhs.support)
+	go bhs.writeLedger(bhs.CurExec.Node)
 	// store block
 	// used to have goroutine
 	bhs.CurExec.Node.Committed = true
 	bhs.BlockStorage.Put(bhs.CurExec.Node)
-	bhs.writeLedger(bhs.CurExec.Node)
 
 	// add view number
 	bhs.View.ViewNum++
@@ -371,61 +371,31 @@ func (bhs *BasicHotStuff) writeLedger(block *pb.Block) {
 		logger.Errorf("block is nil")
 		return
 	}
-	seq := bhs.support.Sequence()
-	if block.IsNormal {
-		envelopes := make([]*common.Envelope, 0, len(block.Commands))
-		for _, tx := range block.Commands {
-			if tx == nil || tx.Envelope == nil {
-				logger.Errorf("Empty Transaction")
-				continue
-			}
-			if tx.ConfigSeq < seq {
-				if _, err := bhs.support.ProcessNormalMsg(tx.Envelope); err != nil {
-					logger.Errorf("Process Normal Msg Failed, %v", err)
-					continue
-				}
-			}
-			envelopes = append(envelopes, tx.Envelope)
-		}
-		if len(envelopes) == 0 {
-			logger.Errorf("no valid transactions to create block")
-			return
-		}
-		fabricBlock := bhs.support.CreateNextBlock(envelopes)
-		if fabricBlock == nil {
-			logger.Errorf("failed to create next block")
-			return
-		}
-		bhs.support.WriteBlock(fabricBlock, nil)
 
-	} else {
-		if len(block.Commands) == 0 {
-			logger.Errorf("no config transaction in block")
-			return
-		}
-		tx := block.Commands[0]
-		if tx == nil || tx.Envelope == nil {
-			logger.Errorf("empty config transaction")
-			return
-		}
-		var envelope *common.Envelope
-		var err error
-		if tx.ConfigSeq < seq {
-			envelope, _, err = bhs.support.ProcessConfigMsg(tx.Envelope)
-			if err != nil {
-				logger.Errorf("process config msg failed: %v", err)
-				return
-			}
+	batch := make([]*common.Envelope, 0)
+	transactions := block.Commands
+
+	for _, tx := range transactions {
+		if tx.isNormal {
+			// Normal Transaction
+			batch = append(batch, tx.Envelope)
 		} else {
-			envelope = tx.Envelope
+			// Config Message
+			if batch != nil {
+				fabricNormalBlock := bhs.support.CreateNextBlock(batch)
+				bhs.support.WriteBlock(fabricNormalBlock, nil)
+				batch = make([]*common.Envelope, 0)
+			}
+			fabricConfigBlock := bhs.support.CreateNextBlock([]*common.Envelope{tx.Envelope})
+			bhs.support.WriteConfigBlock(fabricConfigBlock, nil)
 		}
-		fabricBlock := bhs.support.CreateNextBlock([]*common.Envelope{envelope})
-		if fabricBlock == nil {
-			logger.Errorf("failed to create config block")
-			return
-		}
-		bhs.support.WriteConfigBlock(fabricBlock, nil)
 	}
+
+	if batch != nil {
+		fabricNormalBlock := bhs.support.CreateNextBlock(batch)
+		bhs.support.WriteBlock(fabricNormalBlock, nil)
+	}
+
 }
 
 func (bhs *BasicHotStuff) batchEvent(cmds []*pb.Transaction, isNormal bool) {

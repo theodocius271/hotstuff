@@ -57,6 +57,15 @@ func (c *Chain) Order(env *common.Envelope, configSeq uint64) error {
 		return fmt.Errorf("Exiting")
 	default:
 	}
+
+	seq := c.support.Sequence()
+	if configSeq < seq {
+		logger.Warnf("Normal message was validated against %d, although current config seq has advanced (%d)", configSeq, seq)
+		if _, err := c.support.ProcessNormalMsg(env); err != nil {
+			return errors.Errorf("bad normal message: %s", err)
+		}
+	}
+
 	channelID := c.support.ChainID()
 
 	transaction := &pb.Transaction{
@@ -74,6 +83,7 @@ func (c *Chain) Order(env *common.Envelope, configSeq uint64) error {
 		Payload: &pb.Msg_Request{
 			Request: request,
 		},
+		ChannalID: channelID,
 	}
 
 	// redireat to self
@@ -97,6 +107,15 @@ func (c *Chain) Configure(env *common.Envelope, configSeq uint64) error {
 	}
 	channelID := c.support.ChainID()
 
+	seq := c.support.Sequence()
+	var err error
+	if configSeq < seq {
+		logger.Warnf("Normal message was validated against %d, although current config seq has advanced (%d)", configSeq, seq)
+		if env, _, err = c.support.ProcessConfigMsg(env); err != nil {
+			return errors.Errorf("bad normal message: %s", err)
+		}
+	}
+
 	transaction := &pb.Transaction{
 		Envelope:  env,
 		ChannalId: channelID,
@@ -112,6 +131,7 @@ func (c *Chain) Configure(env *common.Envelope, configSeq uint64) error {
 		Payload: &pb.Msg_Request{
 			Request: request,
 		},
+		ChannalID: channelID,
 	}
 
 	// redireat to self

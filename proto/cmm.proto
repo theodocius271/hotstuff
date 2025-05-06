@@ -9,6 +9,7 @@ message Transaction {
   common.Envelope envelope = 1;
   string channal_id = 2;
   uint64 config_seq = 3;
+  bool isNormal = 4;
 }
 
 message Block {
@@ -16,9 +17,7 @@ message Block {
   bytes Hash = 2;
   uint64 height = 3;
   repeated Transaction commands = 4;
-  QuorumCert Justify = 5;
   bool committed = 6;
-  bool isNormal = 7;
 }
 
 enum MsgType {

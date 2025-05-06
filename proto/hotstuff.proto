@@ -19,7 +19,7 @@ message Msg {
     Request request = 9;
     Reply reply = 10;
   }
-//   string senderAddress = 11;
+    int channal_id = 11;
 }
 
 message Empty {}
@@ -71,16 +71,10 @@ message NewView {
   uint64 viewNum = 2;
 }
 
-//message Request {
-//  string cmd = 1;
-//  string clientAddress = 2;
-//}
-
 message Request {
   Transaction Transaction = 1;
   bool is_normal = 2;
   uint64 time_stamp = 3;
-  string client_address = 4;
 }
 
 message Reply {
