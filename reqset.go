@@ -10,7 +10,7 @@ import (
 	pb "github.com/theodocius271/hotstuff/proto"
 )
 
-type CmdSet interface {
+type ReqSet interface {
 	Add(cmds ...*pb.Transaction)
 	Remove(cmds ...*pb.Transaction)
 	GetFirst(n int) []*pb.Transaction

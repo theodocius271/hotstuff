@@ -37,7 +37,7 @@ type HotStuffImpl struct {
 	TimeChan      *Timer
 	BatchTimeChan *Timer
 	CurExec       *CurProposal
-	CmdSet        CmdSet
+	ReqSet        ReqSet
 	HighQC        *pb.QuorumCert
 	PrepareQC     *pb.QuorumCert // highQC
 	PreCommitQC   *pb.QuorumCert // lockQC

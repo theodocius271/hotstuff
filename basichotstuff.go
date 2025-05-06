@@ -60,7 +60,7 @@ func NewBasicHotStuff(id uint32, support consensus.ConsenterSupport) *BasicHotSt
 		Signature: nil,
 	}
 	logger.Debugf("[HOTSTUFF] Init command set, replica id: %d", id)
-	bhs.CmdSet = NewCmdSet()
+	bhs.ReqSet = NewCmdSet()
 
 	// read config
 	bhs.Config = config.HotStuffConfig{}
@@ -118,7 +118,7 @@ func (bhs *BasicHotStuff) receiveMsg() {
 			// set the duration of the timeout to 2 times
 			bhs.TimeChan = NewTimer(bhs.Config.Timeout * 2)
 			bhs.TimeChan.Init()
-			bhs.CmdSet.UnMark(bhs.CurExec.Node.Commands...)
+			bhs.ReqSet.UnMark(bhs.CurExec.Node.Commands...)
 			bhs.BlockStorage.Put(bhs.CreateLeaf(bhs.CurExec.Node.ParentHash, nil, nil, true))
 			bhs.View.ViewNum++
 			bhs.View.Primary = bhs.GetLeader()
@@ -134,7 +134,7 @@ func (bhs *BasicHotStuff) receiveMsg() {
 			}
 		case <-bhs.BatchTimeChan.Timeout():
 			bhs.BatchTimeChan.Init()
-			bhs.batchEvent(bhs.CmdSet.GetFirst(int(bhs.Config.BatchSize)), true)
+			bhs.batchEvent(bhs.ReqSet.GetFirst(int(bhs.Config.BatchSize)), true)
 			// bhs.batchEvent(bhs.CmdSet.GetFirst(int(bhs.support.SharedConfig().BatchSize().MaxMessageCount)))
 		}
 	}
@@ -306,7 +306,7 @@ func (bhs *BasicHotStuff) handleMsg(msg *pb.Msg) {
 		request := msg.GetRequest()
 		logger.Debugf("[HOTSTUFF] Got request msg, content:%s", request.String())
 		// put the cmd into the cmdset
-		bhs.CmdSet.Add(request.Transaction)
+		bhs.ReqSet.Add(request.Transaction)
 		// send request to the leader, if the replica is not the leader
 		if bhs.ID != bhs.GetLeader() {
 			bhs.Unicast(bhs.GetNetworkInfo()[bhs.GetLeader()], msg)
@@ -318,15 +318,15 @@ func (bhs *BasicHotStuff) handleMsg(msg *pb.Msg) {
 
 		if !request.IsNormal {
 			logger.Debugf("processing config transaction")
-			bhs.batchEvent(bhs.CmdSet.GetFirst(1), false)
+			bhs.batchEvent(bhs.ReqSet.GetFirst(1), false)
 			break
 		}
 
 		// start batch timer
 		bhs.BatchTimeChan.SoftStartTimer()
 		// if the length of unprocessed cmd equals to batch size, stop timer and call handleMsg to send prepare msg
-		logger.Debugf("cmd set size: %d", len(bhs.CmdSet.GetFirst(int(bhs.Config.BatchSize))))
-		cmds := bhs.CmdSet.GetFirst(int(bhs.Config.BatchSize))
+		logger.Debugf("cmd set size: %d", len(bhs.ReqSet.GetFirst(int(bhs.Config.BatchSize))))
+		cmds := bhs.ReqSet.GetFirst(int(bhs.Config.BatchSize))
 		if len(cmds) == int(bhs.Config.BatchSize) {
 			// stop timer
 			bhs.BatchTimeChan.Stop()
@@ -406,7 +406,7 @@ func (bhs *BasicHotStuff) batchEvent(cmds []*pb.Transaction, isNormal bool) {
 	// create prepare msg
 	node := bhs.CreateLeaf(bhs.BlockStorage.GetLastBlockHash(), cmds, nil, isNormal)
 	bhs.CurExec.Node = node
-	bhs.CmdSet.MarkProposed(cmds...)
+	bhs.ReqSet.MarkProposed(cmds...)
 	if bhs.HighQC == nil {
 		bhs.HighQC = bhs.PrepareQC
 	}
